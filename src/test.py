@@ -63,9 +63,6 @@ returned_from_insert = database.insert(entity='list', entries=lists_to_push)
 returned_from_insert = database.insert(entity='entry', entries=entries_to_push)
 
 print(database.select_all(entity='list'))
-print(database.select_all(entity='entry'))
-
-print(database.select_all(entity='list'))
 database.delete(entity='list', bool_op='OR', condition={ 'id': 'jfkleid9023ksdasdlk', 'description': 'Meh'})
 print(database.select_all(entity='list'))
 database.drop()
