@@ -61,53 +61,99 @@ class RestServer:
     def get_all_lists(self):
         return js(self.database.select_all(entity='list'))
 
+
+    ###
+    # @endpoint /search
+    #
+    # @brief
+    # Method returns all lists with given name (name transmitted in request body)
+    # 
+    # @return {Dict[]} List of all lists matching the name (case insensitive)
+    ###
     def search_list(self):
-        arguments = {}
+        name = ''
         
         if not request.args.get('name') == '':
-            arguments['name'] = request.args.get('name')
+            # TODO return bad status code
+            pass
+        
+        name = request.args.get('name').lower()
 
-        if not request.args.get('description') == '':
-            arguments['description'] = request.args.get('name')
+        result = self.database.select_all(entity='list')
 
-        result = {}
+        correct_entries = []
+        for entry in result:
+            if entry['name'].lower() == name:
+                correct_entries.append(entry)
 
-        if len(arguments) > 0:
-            result = self.database.select(entity='list', args=arguments, bool_op='OR')
-        else:
-            result = self.database.select_all(entity='list')
+        return js(correct_entries)
 
-        return js(result)
-
+    ###
+    # @endpoint /todo-list/<id>/entries
+    #
+    # @brief
+    # Method returns all entries in a given todo-list, specified in the url by the id.
+    #
+    # @param {String} id: Is passed in the url. Specifies the todo-list of which the entries are supposed to be gotten
+    # 
+    # @return {Dict[]} List of all entries of a todo-list
+    ###
     def get_entries_from_list(self, id):
         return js(self.database.select(entity='entry', args={ 'list_id': id }, bool_op='AND'))
     
+    ###
+    # @endpoint /todo-list/<id>/entries
+    #
+    # @brief
+    # Method returns all entries in a given todo-list, specified in the url by the id.
+    #
+    # @return {Dict[]} List of all entries of a todo-list
+    ###
     def delete(self, id):
         result = self.database.delete(entity='list', condition={'id': id}, bool_op='AND')
         self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
         return result
     
 
+    ###
+    # @endpoint /todo-list
+    # 
+    # @brief
+    # Adds a list, using the parameters transmitted in body of request
+    #
+    # @return {Dict} Information about the added entries, as well as how many entries were written
+    ###
     def add_list(self):
         name = ''
         description = ''
 
+        # Check, if necessary body parameter was passed and return bad status code, if it wasn't
         if not request.form.get('name'):
             # TODO return bad status code, some 300 stuff I guess
             pass
         else:
             name = request.form.get('name')
 
-        if request.form.get('description'):
+        if not not request.form.get('description'):
             description = request.form.get('description')
 
-        new_id = uuid.uuid4()
+        # Generate a new uuid for the new list and check the database for existing entries
+        new_id = str(uuid.uuid4())
+        check = self.database.select(entity='list', args={'id': new_id})
+        
+        # If the check yielded results (highly unlikely), create a new uuid and try again
+        while len(check) > 0:
+            new_id = str(uuid.uuid4())
+            check = self.database.select(entity='list', args={'id': new_id})
+        
+        # Pack arguments into dict
         arguments = {
-            'id': str(new_id),
+            'id': new_id,
             'name': name,
             'description': description
         }
 
+        # Insert the new todo-list into the database
         result = self.database.insert(entity='list', entries=[arguments])
         return js(result)
     
