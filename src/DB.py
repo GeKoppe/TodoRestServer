@@ -136,6 +136,7 @@ class DB:
                 entries_written += 1
                 self.list.append(dict_to_push)
 
+        self.write_db_to_file()
         return { 'written': entries_written, 'total': total_entries }
     
 
@@ -148,6 +149,7 @@ class DB:
         elif entity == 'entry':
             return self.entry
         
+        self.write_db_to_file()
         return []
 
     def update(self, entity=None, mapping=None, condition=None, bool_op='AND'):
@@ -242,7 +244,8 @@ class DB:
                     for key in mapping:
                         entry[key] = mapping[key]
                     num_of_entries_updated += 1
-
+        
+        self.write_db_to_file()
         return {'entries_updated': num_of_entries_updated}
     
 
@@ -275,9 +278,11 @@ class DB:
 
         deleted_entries = 0
         current_index = 0
+
+        indices_to_delete = []
+
         if entity == 'list':
             for entry in self.list:
-                deleted = False
                 conditions_matched = 0
                 for cond in condition:
                     
@@ -285,21 +290,16 @@ class DB:
                         if bool_op == 'AND':
                             conditions_matched += 1
                         elif bool_op == 'OR':
-                            self.list.pop(current_index)
-                            
-                            deleted = True
+                            indices_to_delete.append(current_index)
                             break
                 
                 if bool_op == 'AND' and num_of_conditions == conditions_matched:
-                    self.list.pop(current_index)
-                    deleted = True
+                    indices_to_delete.append(current_index)
                 
-                if not deleted:
-                    current_index += 1
+                current_index += 1
 
         if entity == 'entry':
             for entry in self.entry:
-                deleted = False
                 conditions_matched = 0
                 for cond in condition:
                     
@@ -308,16 +308,22 @@ class DB:
                             conditions_matched += 1
                         elif bool_op == 'OR':
                             self.list.pop(current_index)
-                            
-                            deleted = True
                             break
                 
                 if bool_op == 'AND' and num_of_conditions == conditions_matched:
-                    self.list.pop(current_index)
-                    deleted = True
+                    indices_to_delete.append(current_index)
                 
-                if not deleted:
-                    current_index += 1
+                current_index += 1
+
+        for i in range(len(indices_to_delete)):
+            if entity == 'entry':
+                self.entry.pop(indices_to_delete[len(indices_to_delete) - 1 - i])
+            elif entity == 'list':
+                self.list.pop(indices_to_delete[len(indices_to_delete) - 1 - i])
+            deleted_entries += 1
+        
+        self.write_db_to_file()
+        return { 'deleted': deleted_entries}
 
     def drop(self):
         self.list = []
