@@ -27,10 +27,14 @@ class DB:
             self.list = []
             self.entry = []
         else:
-            db_file = open(final_dir + '\\db.json', 'r')
-            db_json = json.loads(db_file.read())
-            self.list = db_json['list']
-            self.entry = db_json['entry']
+            try:
+                db_file = open(final_dir + '\\db.json', 'r')
+                db_json = json.loads(db_file.read())
+                self.list = db_json['list']
+                self.entry = db_json['entry']
+            except:
+                self.list = []
+                self.entry = []
         
     
 
@@ -115,6 +119,7 @@ class DB:
         entries_written = 0
         total_entries = len(entries)
         entry_index = 0
+        written_entries = []
 
         for entry in entries:
             if entity == 'list':
@@ -149,14 +154,16 @@ class DB:
             if entity == 'entry':
                 dict_to_push['list_id'] = entry['list_id']
                 entries_written += 1
+                written_entries.append(dict_to_push)
                 self.entry.append(dict_to_push)
 
             if entity == 'list':
                 entries_written += 1
+                written_entries.append(dict_to_push)
                 self.list.append(dict_to_push)
 
         self.write_db_to_file()
-        return { 'written': entries_written, 'total': total_entries }
+        return { 'written': entries_written, 'total': total_entries, 'entries': written_entries}
     
 
     ###
