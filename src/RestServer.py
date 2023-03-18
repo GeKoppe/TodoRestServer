@@ -1,5 +1,6 @@
 from flask import Flask as f
 from flask import jsonify as js
+from flask import request
 from DB import DB as db
 
 class RestServer:
@@ -12,13 +13,12 @@ class RestServer:
 
     database = None
 
-    endpoint_handlers = []
-
     def __init__(self, host='', port=5000) -> None:
         self.app = f(__name__)
         self.host = host
         self.port = port
         self.database = db()
+        self.database.drop()
 
         lists_to_push = [
             {
@@ -81,15 +81,58 @@ class RestServer:
 
 
     def define_routes(self):
-        self.app.add_url_rule('/lists', 'lists', self.get_lists, methods=['GET'])
+        endpoints = [
+            {
+                'route': '/todo_list/<id>/entries',
+                'name': 'todo_list_entries',
+                'handler': self.get_entries_from_list,
+                'methods': ['GET']
+            },
+            {
+                'route': '/search',
+                'name': 'search',
+                'handler': self.search_list,
+                'methods': ['GET']
+            },
+            {
+                'route': '/todo_list/<id>',
+                'name': 'delete',
+                'handler': self.delete,
+                'methods': ['DELETE']
+            },
+            {
+                'route': '/entry',
+                'name': 'add_entry',
+                'handler': self.add_entry_to_list,
+                'methods': ['POST']
+            }
+        ]
+
+        for ep in endpoints:
+            self.app.add_url_rule(ep['route'], ep['name'], ep['handler'], methods=ep['methods'])
         
     
-    def get_lists(self):
+    def get_all_lists(self):
         return js(self.database.select_all(entity='list'))
 
-    def get_entries(self):
-        pass
+    def search_list(self):
+        test = self.database.select(entity='list', args={'name': request.args.get('name')}, bool_op='AND')
+        return js(test)
 
-    def boot(self):
+    def get_entries_from_list(self, id):
+        return js(self.database.select(entity='entry', args={ 'list_id': id }, bool_op='AND'))
+    
+    def delete(self, id):
+        result = self.database.delete(entity='list', condition={'id': id}, bool_op='AND')
+        self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
+        return result
+    
+    def add_entry_to_list(self):
+        # TODO UUID Generieren
+        body = request.form
+
+
+
+    def boot(self):    
         self.define_routes()
         self.app.run(host=self.host, port=self.port)
