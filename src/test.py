@@ -41,18 +41,18 @@ entries_to_push = [
         'list_id': 'fadskjl8954kdsa2'
     },
     {
-        'id': 'jlkf390jdfasil3jk',
+        'id': 'fdasjkle',
         'name': 'Test Entry 4',
         'list_id': 'jdas893kds81kdfhjas'
     },
     {
-        'id': 'jlkf390jdfasil3jk',
+        'id': '8d923okldsfuzoi21',
         'name': 'Test Entry 5',
         'description': 'Basically really only for testing',
         'list_id': 'jdas893kds81kdfhjas'
     },
     {
-        'id': 'jlkf390jdfasil3jk',
+        'id': '10fdspj3219i012',
         'name': 'Test Entry 6',
         'list_id': 'jdas893kds81kdfhjas'
     }
@@ -68,6 +68,7 @@ print(database.select_all(entity='entry'))
 print(database.select_all(entity='list'))
 database.delete(entity='list', bool_op='OR', condition={ 'id': 'jfkleid9023ksdasdlk', 'description': 'Meh'})
 print(database.select_all(entity='list'))
+database.drop()
 
 # print('\n****************************************** TESTING SELECT NOW ******************************************\n')
 # print(database.select(entity='list', bool_op='AND', args={ 'id': 'jdas893kds81kdfhjas', 'name': 'Testus Testosteron' }))
@@ -83,4 +84,3 @@ print(database.select_all(entity='list'))
 # print(database.select_all(entity='list'))
 
 # print('\n****************************************** TESTING DELTE NOW ******************************************\n')
-database.write_db_to_file()
