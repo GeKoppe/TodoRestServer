@@ -79,6 +79,19 @@ class DB:
                 
                 if args_matching == num_of_args:
                     results.append(entry)
+
+        if entity == 'entry':
+            for entry in self.entry:
+                args_matching = 0
+                for arg in args:
+                    if entry[arg] == args[arg]:
+                        if bool_op == 'AND': 
+                            args_matching += 1
+                        elif bool_op == 'OR':
+                            results.append(entry)
+                
+                if args_matching == num_of_args:
+                    results.append(entry)
         
         return results
 

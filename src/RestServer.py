@@ -51,6 +51,12 @@ class RestServer:
                 'name': 'add_list',
                 'handler': self.add_list,
                 'methods': ['PUT']
+            },
+            {
+                'route': '/entry/<list_id>/<entry_id>',
+                'name': 'update_entry',
+                'handler': self.update_entry,
+                'methods': ['POST', 'DELETE']
             }
         ]
 
@@ -73,7 +79,7 @@ class RestServer:
     def search_list(self):
         name = ''
         
-        if not request.args.get('name') == '':
+        if not request.args.get('name'):
             # TODO return bad status code
             pass
         
@@ -121,7 +127,7 @@ class RestServer:
     # @brief
     # Adds a list, using the parameters transmitted in body of request
     #
-    # @return {Dict} Information about the added entries, as well as how many entries were written
+    # @return {Dict} Information about the added list
     ###
     def add_list(self):
         name = ''
@@ -156,11 +162,66 @@ class RestServer:
         # Insert the new todo-list into the database
         result = self.database.insert(entity='list', entries=[arguments])
         return js(result)
+
+
+    def update_entry(self, list_id, entry_id):
+        result = {}
+        if request.method == 'POST':
+                
+            name = ''
+            description = ''
+
+            if not not request.form.get('name'):
+                name = request.form.get('name')
+
+            if not not request.form.get('description'):
+                description = request.form.get('description')
+            
+            arguments = {
+                'name': name,
+                'description': description
+            }
+
+            if name == '' and description == '':
+                pass
+            
+            result = self.database.update(entity='entry', mapping=arguments, condition={'id': entry_id, 'list_id': list_id}, bool_op='AND')
+        elif request.method == 'DELETE':
+            result = self.database.delete(entity='entry', condition={'id': entry_id, 'list_id': list_id})
+            
+        return js(result)
     
     def add_entry_to_list(self):
-        # TODO UUID Generieren
-        body = request.form
+        name = ''
+        description = ''
+        list_id = ''
 
+        if not request.form.get('name') or not request.form.get('list_id'):
+            pass
+        else:
+            name = request.form.get('name')
+            list_id = request.form.get('list_id')
+
+        if not not request.form.get('description'):
+            description = request.form.get('description')
+
+        # Generate a new uuid for the new list and check the database for existing entries
+        new_id = str(uuid.uuid4())
+        check = self.database.select(entity='list', args={'id': new_id})
+        
+        # If the check yielded results (highly unlikely), create a new uuid and try again
+        while len(check) > 0:
+            new_id = str(uuid.uuid4())
+            check = self.database.select(entity='entry', args={'id': new_id})
+
+        arguments = {
+            'name': name,
+            'description': description,
+            'list_id': list_id,
+            'id': new_id
+        }
+
+        return js(self.database.insert(entity='entry', entries=[arguments]))
 
 
     def boot(self):    
