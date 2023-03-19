@@ -134,14 +134,20 @@ class RestServer:
         description = ''
 
         # Check, if necessary body parameter was passed and return bad status code, if it wasn't
-        if not request.form.get('name'):
+        if not request.form.get('name') and not request.json['name']:
             # TODO return bad status code, some 300 stuff I guess
             pass
         else:
-            name = request.form.get('name')
+            if request.form.get('name'):
+                name = request.form.get('name')
+            else:
+                name = request.json['name']
 
-        if not not request.form.get('description'):
+        if not not request.form.get('description') or not not request.json['description']:
             description = request.form.get('description')
+
+            if not description:
+                description = request.json['description']
 
         # Generate a new uuid for the new list and check the database for existing entries
         new_id = str(uuid.uuid4())
@@ -171,11 +177,17 @@ class RestServer:
             name = ''
             description = ''
 
-            if not not request.form.get('name'):
+            if not not request.form.get('name') or not not request.json['name']:
                 name = request.form.get('name')
 
-            if not not request.form.get('description'):
+                if not name:
+                    name = request.json['name']
+
+            if not not request.form.get('description') or not not request.json['description']:
                 description = request.form.get('description')
+
+                if not name:
+                    name = request.json['description']
             
             arguments = {
                 'name': name,
@@ -196,14 +208,22 @@ class RestServer:
         description = ''
         list_id = ''
 
-        if not request.form.get('name') or not request.form.get('list_id'):
+        if (not request.form.get('name') and not request.json['name']) or (not request.form.get('list_id') and not request.json['list_id']):
             pass
         else:
             name = request.form.get('name')
             list_id = request.form.get('list_id')
 
+            if not name:
+                name = request.json['name']
+            if not list_id:
+                list_id = request.json['list_id']
+
         if not not request.form.get('description'):
             description = request.form.get('description')
+
+            if not description:
+                description = request.json['description']
 
         # Generate a new uuid for the new list and check the database for existing entries
         new_id = str(uuid.uuid4())
