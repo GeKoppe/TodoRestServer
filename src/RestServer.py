@@ -65,7 +65,7 @@ class RestServer:
         
     
     def get_all_lists(self):
-        return js(self.database.select_all(entity='list'))
+        return js({'entries': self.database.select_all(entity='list')})
 
 
     ###
@@ -92,7 +92,9 @@ class RestServer:
             if entry['name'].lower() == name:
                 correct_entries.append(entry)
 
-        return js(correct_entries)
+        return js({
+            'entries': correct_entries
+        })
 
     ###
     # @endpoint /todo-list/<id>/entries
@@ -105,7 +107,7 @@ class RestServer:
     # @return {Dict[]} List of all entries of a todo-list
     ###
     def get_entries_from_list(self, id):
-        return js(self.database.select(entity='entry', args={ 'list_id': id }, bool_op='AND'))
+        return js({'entries': self.database.select(entity='entry', args={ 'list_id': id }, bool_op='AND')})
     
     ###
     # @endpoint /todo-list/<id>/entries
