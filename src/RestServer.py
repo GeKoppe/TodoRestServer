@@ -50,7 +50,7 @@ class RestServer:
                 'route': '/todo-list',
                 'name': 'add_list',
                 'handler': self.add_list,
-                'methods': ['PUT']
+                'methods': ['PUT', 'GET']
             },
             {
                 'route': '/entry/<list_id>/<entry_id>',
@@ -135,6 +135,12 @@ class RestServer:
         name = ''
         description = ''
 
+        if request.method == 'GET':
+            if request.args.get('all', 'true'):
+                return self.get_all_lists()
+            else:
+                return js({'entries': []})
+
         # Check, if necessary body parameter was passed and return bad status code, if it wasn't
         if not request.form.get('name') and not request.json['name']:
             # TODO return bad status code, some 300 stuff I guess
@@ -188,7 +194,7 @@ class RestServer:
             if not not request.form.get('description') or not not request.json['description']:
                 description = request.form.get('description')
 
-                if not name:
+                if not description:
                     name = request.json['description']
             
             arguments = {
