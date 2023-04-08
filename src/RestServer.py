@@ -195,7 +195,7 @@ class RestServer:
                 description = request.form.get('description')
 
                 if not description:
-                    name = request.json['description']
+                    description = request.json['description']
             
             arguments = {
                 'name': name,
