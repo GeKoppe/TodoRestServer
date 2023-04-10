@@ -37,8 +37,8 @@ class RestServer:
             {
                 'route': '/todo-list/<id>',
                 'name': 'delete',
-                'handler': self.delete,
-                'methods': ['DELETE']
+                'handler': self.change_list,
+                'methods': ['DELETE', 'POST', 'GET']
             },
             {
                 'route': '/entry',
@@ -117,9 +117,41 @@ class RestServer:
     #
     # @return {Dict[]} List of all entries of a todo-list
     ###
-    def delete(self, id):
-        result = self.database.delete(entity='list', condition={'id': id}, bool_op='AND')
-        self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
+    def change_list(self, id):
+        result = {}
+        if request.method == 'DELETE':
+            result = self.database.delete(entity='list', condition={'id': id}, bool_op='AND')
+            self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
+            return result
+        elif request.method == 'POST':
+            name = ''
+            description = ''
+
+            if not not request.form.get('name') or not not request.json['name']:
+                name = request.form.get('name')
+
+                if not name:
+                    name = request.json['name']
+
+            if not not request.form.get('description') or not not request.json['description']:
+                description = request.form.get('description')
+
+                if not description:
+                    description = request.json['description']
+            
+            arguments = {
+                'name': name,
+                'description': description
+            }
+
+            if name == '' and description == '':
+                return
+            
+            result = self.database.update(entity='list', mapping=arguments, condition={'id': id}, bool_op='AND')
+            return result
+        elif request.method == 'GET':
+            list = self.database.select(entity='list', args={'id': id}, bool_op='AND')
+            return js({'entries': list})
         return result
     
 
