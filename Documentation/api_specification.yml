@@ -1,0 +1,353 @@
+openapi: '3.0.3'
+info:
+  title: Todolisten Verwaltung
+  description: |-
+    API verwaltet Todolisten
+  version: '1.0'
+
+servers:
+  - url: http://localhost:5000
+  - url: http://localhost:6000
+tags:
+  - name: Todo-Listen
+    description: An diesem Endpunkt können neue Todo-Listen erstellt und
+      alle existenten Todo-Listen abgerufen werden.
+  - name: Einzelne Todo-Liste
+    description: An diesem Endpunkt können einzelne Todo-Listen verwaltet 
+      werden.
+  - name: Todo-Listen erweitern
+    description: An diesem Endpunkt können bestehenden Todo-Listen neue Einträge
+      hinzugefügt werden.
+  - name: Einträge
+    description: An diesem Endpunkt können existierende Endpunkte verwaltet 
+      werden.
+  - name: Suche
+    description: Endpunkt, um nach einer bestimmten Liste anhand des
+      Namens der Liste zu suchen.
+
+paths:
+  /todo-list:
+    get:
+      tags:
+        - Todo-Listen
+      description: Liefert alle existenten Todo-Listen
+      responses:
+        200:
+          "$ref": "#/components/responses/TodoListArrayResponse"
+        405:
+          "$ref": "#/components/responses/405"
+        500:
+          "$ref": "#/components/responses/500"
+
+    post:
+      tags:
+        - Todo-Listen
+      description: Fügt eine neue Todo-Liste hinzu.
+      requestBody:
+        "$ref": "#/components/requestBodies/TodoListBody"
+
+      responses:
+        200:
+          description: OK
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/TodoList"
+        405:
+          "$ref": "#/components/responses/405"
+        500:
+          "$ref": "#/components/responses/500"
+
+  /todo-list/{list_id}:
+    get:
+      tags:
+        - Einzelne Todo-Liste
+      description: Liefert alle Einträge einer bestimmten Liste.
+      parameters:
+        - "$ref": "#/components/parameters/ListId"
+      responses:
+        200:
+          "$ref": "#/components/responses/EntryArrayResponse"
+        404:
+          "$ref": "#/components/responses/404"
+        405:
+          "$ref": "#/components/responses/405"
+        500:
+          "$ref": "#/components/responses/500"
+    
+    patch:
+      tags:
+        - Einzelne Todo-Liste
+      description: Aktualisiert den Namen einer bestehenden Todo-Liste
+      parameters:
+        - "$ref": "#/components/parameters/ListId"
+      requestBody:
+        "$ref": "#/components/requestBodies/TodoListBody"
+
+      responses:
+        200:
+          "$ref": "#/components/responses/TodoListResponse"
+        404:
+          "$ref": "#/components/responses/404"
+        405:
+          "$ref": "#/components/responses/405"
+        500:
+          "$ref": "#/components/responses/500"
+
+
+    delete:
+      tags:
+        - Einzelne Todo-Liste
+      description: Löscht die der list_id zugeordnete Liste.
+      responses:
+        200:
+          "$ref": "#/components/responses/TodoListResponse"
+        404:
+          "$ref": "#/components/responses/404"
+        405:
+          "$ref": "#/components/responses/405"
+        500:
+          "$ref": "#/components/responses/500"
+  
+  /todo-list/{list_id}/entry:
+    post:
+      tags:
+        - Todo-Listen erweitern
+      description: Fügt einen Eintrag zu einer bestehenden Todo-Liste hinzu.
+      parameters:
+        - "$ref": "#/components/parameters/ListId"
+      responses:
+        200:
+          "$ref": "#/components/responses/200"
+        404:
+          "$ref": "#/components/responses/404"
+        405:
+          "$ref": "#/components/responses/405"
+        500:
+          "$ref": "#/components/responses/500"
+
+  /entry/{entry_id}:
+    patch:
+      tags:
+        - Einträge
+      description: Aktualisiert den Namen und / oder die Beschreibung eines
+        bestehenden Eintrags.
+      parameters:
+        - "$ref": "#/components/parameters/EntryId"
+      requestBody:
+        "$ref": "#/components/requestBodies/EntryBody"
+      responses:
+        200:
+          "$ref": "#/components/responses/200"
+        404:
+          "$ref": "#/components/responses/404"
+        405:
+          "$ref": "#/components/responses/405"
+        500:
+          "$ref": "#/components/responses/500"
+    delete:
+      tags:
+        - Einträge
+      description: Löscht den zu der id entry_id gehörenden Eintrag
+      parameters:
+        - "$ref": "#/components/parameters/EntryId"
+      responses:
+        200:
+          "$ref": "#/components/responses/200"
+        404:
+          "$ref": "#/components/responses/404"
+        405:
+          "$ref": "#/components/responses/405"
+        500:
+          "$ref": "#/components/responses/500"
+
+  /search:
+    patch:
+      tags:
+        - Suche
+      description: Liefert jede Liste, deren Name mit dem Suchparameter 
+        übereinstimmt
+      parameters:
+        - name: name
+          in: query
+          schema:
+            "$ref": "#/components/schemas/Name"
+          required: true
+      responses:
+        200:
+          "$ref": "#/components/responses/TodoListArrayResponse"
+        405:
+          "$ref": "#/components/responses/405"
+        500:
+          "$ref": "#/components/responses/500"   
+
+
+components:
+  parameters:
+    ListId:
+      name: list_id
+      in: path
+      schema:
+        "$ref": "#/components/schemas/UUID"
+      required: true
+    
+    EntryId:
+      name: entry_id
+      in: path
+      schema:
+        "$ref": "#/components/schemas/UUID"
+      required: true
+
+  requestBodies:
+    TodoListBody:
+      description: Benötigt den Namen, den die neue Todo-Liste haben soll.
+      content:
+        application/json:
+          schema: 
+            type: object
+            properties:
+              name:
+                "$ref": "#/components/schemas/Name"
+                required: true
+    EntryBody:
+      description: Benötigt den Namen, den der Eintrag haben soll sowie optional
+        die Beschreibung.
+      content:
+        application/json:
+          schema: 
+            type: object
+            properties:
+              name:
+                "$ref": "#/components/schemas/EntryName"
+                required: true
+              description:
+                type: string
+                description: Beschreibung des Eintrags der Todo-Liste
+                example: Ist gesund und schmeckt gut
+  
+  schemas:
+    UUID:
+      type: string
+      description: UUID, eindeutiger Identifier einer Entität (Liste oder Eintrag)
+      example: 686ef885-8226-4c6e-a1e3-e8452dcac1f1
+    Name:
+      type: string
+      description: Name einer Entität (Liste oder Eintrag)
+      example: Einkaufsliste
+    EntryName:
+      type: string
+      description: Name einer Entität (Liste oder Eintrag)
+      example: Broccoli
+    Description:
+      type: string
+      description: Beschreibung des Eintrags
+      example: Gesund und lecker
+    TodoList:
+      type: object
+      properties:
+        name:
+          "$ref": "#/components/schemas/Name"
+        id:
+          "$ref": "#/components/schemas/UUID"
+    TodoListArray:
+      type: object
+      properties:
+        entries:
+          type: array
+          description: Liste aller existenten Todo-Listen
+          items:
+            "$ref": "#/components/schemas/TodoList"
+    
+    Entry:
+      type: object
+      properties:
+        name:
+          "$ref": "#/components/schemas/EntryName"
+        "description":
+          "$ref": "#/components/schemas/Description"
+        id:
+          "$ref": "#/components/schemas/UUID"
+    EntryArray:
+      type: object
+      properties:
+        entries:
+          type: array
+          description: Liste aller Einträge, die zu der entsprechenden Todo-Liste
+            gehören.
+          items:
+            "$ref": "#/components/schemas/Entry"
+  responses:
+    EntryArrayResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/EntryArray"
+    TodoListArrayResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/TodoListArray"
+    
+    EntryResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/Entry"
+    
+    TodoListResponse:
+      description: OK
+      content:
+        application/json:
+          schema:
+            "$ref": "#/components/schemas/TodoList"
+      
+    200:
+      description: OK
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: ""
+                example: Operation successful
+
+    404:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Erweiterte Fehlermeldung, falls vorhanden
+                example: Could not find UUID
+    
+    405:
+      description: Method not allowed
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Erweiterte Fehlermeldung, falls vorhanden
+                example: The method you used wasn't allowed
+
+    500:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Erweiterte Fehlermeldung, falls vorhanden
+                example: Could not create a valid uuid
