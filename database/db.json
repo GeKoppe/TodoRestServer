@@ -1,1 +1,40 @@
-{"list": [{"description": "description for Rest Test", "id": "bf1e0b99-4ae3-42e1-acfe-2fcdf9d8c73c", "name": "Rest Test"}, {"description": "Sooo kein Bock Bruder", "id": "90b1a482-2971-47aa-88f8-47fe64903fad", "name": "ER-Diagramme"}], "entry": []}
+{
+  "list": [
+    {
+      "description": "",
+      "id": "6ec16068-a58f-4c1a-aac7-9b6f600ceb5d",
+      "name": "Gerrit"
+    },
+    {
+      "description": "",
+      "id": "57399f2a-0a9f-4847-98d8-ce33a28de817",
+      "name": "Anderer Name"
+    }
+  ],
+  "entry": [
+    {
+      "description": "Wird zeit",
+      "id": "9321958e-00e6-4c0d-bfc1-2ffb7916cdae",
+      "name": "W\u00e4sche aus der Maschine holen",
+      "list_id": "6ec16068-a58f-4c1a-aac7-9b6f600ceb5d"
+    },
+    {
+      "description": "Beschreibung eintragen",
+      "id": "5e7a4f16-6b94-4ddf-8077-bf22362224ec",
+      "name": "Namen eintragen",
+      "list_id": "57399f2a-0a9f-4847-98d8-ce33a28de817"
+    },
+    {
+      "description": "Hello World",
+      "id": "b6f8d72a-31a4-4a14-96d6-3dfe787c9ec0",
+      "name": "Test Beschreibung 17",
+      "list_id": "57399f2a-0a9f-4847-98d8-ce33a28de817"
+    },
+    {
+      "description": "What up",
+      "id": "26b7b62d-5831-4202-8d3f-4117ee4f24aa",
+      "name": "Hello there",
+      "list_id": "57399f2a-0a9f-4847-98d8-ce33a28de817"
+    }
+  ]
+}

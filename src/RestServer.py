@@ -1,6 +1,7 @@
 from flask import Flask as f
 from flask import jsonify as js
 from flask import request
+from flask import abort
 from DB import DB as db
 import uuid
 
@@ -23,12 +24,6 @@ class RestServer:
     def define_routes(self):
         endpoints = [
             {
-                'route': '/todo-list/<id>/entries',
-                'name': 'todo_list_entries',
-                'handler': self.get_entries_from_list,
-                'methods': ['GET']
-            },
-            {
                 'route': '/search',
                 'name': 'search',
                 'handler': self.search_list,
@@ -38,10 +33,10 @@ class RestServer:
                 'route': '/todo-list/<id>',
                 'name': 'delete',
                 'handler': self.change_list,
-                'methods': ['DELETE', 'POST', 'GET']
+                'methods': ['DELETE', 'PATCH', 'GET']
             },
             {
-                'route': '/entry',
+                'route': '/todo-list/<id>/entry',
                 'name': 'add_entry',
                 'handler': self.add_entry_to_list,
                 'methods': ['POST']
@@ -50,13 +45,19 @@ class RestServer:
                 'route': '/todo-list',
                 'name': 'add_list',
                 'handler': self.add_list,
-                'methods': ['PUT', 'GET']
+                'methods': ['POST', 'GET']
             },
             {
-                'route': '/entry/<list_id>/<entry_id>',
+                'route': '/entry/<entry_id>',
                 'name': 'update_entry',
                 'handler': self.update_entry,
-                'methods': ['POST', 'DELETE']
+                'methods': ['PATCH', 'DELETE']
+            },
+            {
+                'route': '/drop',
+                'name': 'drop',
+                'handler': self.drop,
+                'methods': ['DELETE']
             }
         ]
 
@@ -72,24 +73,26 @@ class RestServer:
     # @endpoint /search
     #
     # @brief
-    # Method returns all lists with given name (name transmitted in request body)
+    # Method returns all lists with given name (name transmitted in query params)
     # 
     # @return {Dict[]} List of all lists matching the name (case insensitive)
     ###
     def search_list(self):
         name = ''
         
-        if not request.args.get('name'):
+        if not request.args.get('name') and not request.args.get('list_id'):
             # TODO return bad status code
             pass
         
-        name = request.args.get('name').lower()
+        name = request.args.get('name')
+        if name:
+            name = name.lower()
 
         result = self.database.select_all(entity='list')
 
         correct_entries = []
         for entry in result:
-            if entry['name'].lower() == name:
+            if entry['name'].lower() == name or entry['id'] == request.args.get('list_id'):
                 correct_entries.append(entry)
 
         return js({
@@ -109,6 +112,9 @@ class RestServer:
     def get_entries_from_list(self, id):
         return js({'entries': self.database.select(entity='entry', args={ 'list_id': id }, bool_op='AND')})
     
+    def drop(self):
+        return js(self.database.drop())
+
     ###
     # @endpoint /todo-list/<id>/entries
     #
@@ -119,30 +125,45 @@ class RestServer:
     ###
     def change_list(self, id):
         result = {}
+
+        if request.method == 'GET':
+            return self.get_entries_from_list(id)
         if request.method == 'DELETE':
             result = self.database.delete(entity='list', condition={'id': id}, bool_op='AND')
             self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
             return result
-        elif request.method == 'POST':
+        elif request.method == 'POST' or request.method == 'PATCH':
             name = ''
             description = ''
 
-            if not not request.form.get('name') or not not request.json['name']:
+            if not not request.form.get('name'):
                 name = request.form.get('name')
 
-                if not name:
+            if name == '':
+                try:
                     name = request.json['name']
+                except:
+                    abort(500)
 
-            if not not request.form.get('description') or not not request.json['description']:
+            if not not request.form.get('description'):
                 description = request.form.get('description')
 
-                if not description:
+            if description == '':
+                try:
                     description = request.json['description']
+                except:
+                    pass
             
-            arguments = {
-                'name': name,
-                'description': description
-            }
+            
+            if not description == '':
+                arguments = {
+                    'name': name,
+                    'description': description
+                }
+            else:
+                arguments = {
+                    'name': name
+                }
 
             if name == '' and description == '':
                 return
@@ -183,12 +204,14 @@ class RestServer:
             else:
                 name = request.json['name']
 
-        if not not request.form.get('description') or not not request.json['description']:
+        if not not request.form.get('description'):
             description = request.form.get('description')
 
             if not description:
-                description = request.json['description']
-
+                try:
+                    description = request.json['description']
+                except:
+                    abort(500)
         # Generate a new uuid for the new list and check the database for existing entries
         new_id = str(uuid.uuid4())
         check = self.database.select(entity='list', args={'id': new_id})
@@ -202,17 +225,17 @@ class RestServer:
         arguments = {
             'id': new_id,
             'name': name,
-            'description': description
         }
 
         # Insert the new todo-list into the database
         result = self.database.insert(entity='list', entries=[arguments])
-        return js(result)
+        # TODO hier noch überprüfen, ob die Werte tatsächlich geschrieben wurden
+        return js({'entries': [arguments]})
 
 
     def update_entry(self, list_id, entry_id):
         result = {}
-        if request.method == 'POST':
+        if request.method == 'PATCH':
                 
             name = ''
             description = ''
@@ -221,14 +244,20 @@ class RestServer:
                 name = request.form.get('name')
 
                 if not name:
-                    name = request.json['name']
+                    try:
+                        name = request.json['name']
+                    except:
+                        pass
 
             if not not request.form.get('description') or not not request.json['description']:
                 description = request.form.get('description')
 
                 if not description:
-                    description = request.json['description']
-            
+                    try:
+                        description = request.json['description']
+                    except:
+                        pass
+
             arguments = {
                 'name': name,
                 'description': description
@@ -243,27 +272,28 @@ class RestServer:
             
         return js(result)
     
-    def add_entry_to_list(self):
+    def add_entry_to_list(self, id):
         name = ''
         description = ''
         list_id = ''
 
-        if (not request.form.get('name') and not request.json['name']) or (not request.form.get('list_id') and not request.json['list_id']):
+        if (not request.form.get('name') and not request.json['name']):
             pass
         else:
             name = request.form.get('name')
-            list_id = request.form.get('list_id')
+            list_id = id
 
             if not name:
                 name = request.json['name']
-            if not list_id:
-                list_id = request.json['list_id']
 
         if not not request.form.get('description'):
             description = request.form.get('description')
 
-            if not description:
+        if not description:
+            try:
                 description = request.json['description']
+            except:
+                pass
 
         # Generate a new uuid for the new list and check the database for existing entries
         new_id = str(uuid.uuid4())

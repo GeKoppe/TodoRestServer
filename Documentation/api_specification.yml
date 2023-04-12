@@ -23,7 +23,7 @@ tags:
       werden.
   - name: Suche
     description: Endpunkt, um nach einer bestimmten Liste anhand des
-      Namens der Liste zu suchen.
+      Namens oder der UUID der Liste zu suchen.
 
 paths:
   /todo-list:
@@ -162,17 +162,21 @@ paths:
           "$ref": "#/components/responses/500"
 
   /search:
-    patch:
+    get:
       tags:
         - Suche
       description: Liefert jede Liste, deren Name mit dem Suchparameter 
-        übereinstimmt
+        übereinstimmt. Entweder name oder list_id wird benötigt.
       parameters:
         - name: name
           in: query
           schema:
             "$ref": "#/components/schemas/Name"
           required: true
+        - name: list_id
+          in: query
+          schema:
+            "$ref": "#/components/schemas/UUID"
       responses:
         200:
           "$ref": "#/components/responses/TodoListArrayResponse"
