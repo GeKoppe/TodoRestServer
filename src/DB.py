@@ -8,8 +8,7 @@ class DB:
     
     list_attributes = [
         'id',
-        'name',
-        'description'
+        'name'
     ]
 
     entry_attributes = [
@@ -156,16 +155,16 @@ class DB:
         for entry in entries:
             # everything is copied into a new dict, in order to filter out every unnecessary property
             dict_to_push = {}
-            if not ('description' in entry) or entry['description'] == '':
-                dict_to_push['description'] = ''
-            else:
-                dict_to_push['description'] = entry['description']
 
             dict_to_push['id'] = entry['id']
             dict_to_push['name'] = entry['name']
 
             if entity == 'entry':
                 dict_to_push['list_id'] = entry['list_id']
+                if not ('description' in entry) or entry['description'] == '':
+                    dict_to_push['description'] = ''
+                else:
+                    dict_to_push['description'] = entry['description']
                 entries_written += 1
                 written_entries.append(dict_to_push)
                 self.entry.append(dict_to_push)

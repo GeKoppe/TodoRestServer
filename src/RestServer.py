@@ -308,7 +308,7 @@ class RestServer:
         elif request.method == 'DELETE':
             result = self.database.delete(entity='entry', condition={'id': entry_id})
 
-            if result['entries_updated'] < 1:
+            if result['deleted'] < 1:
                 return resp("{\"message\": \"Failed to delete\"}", status=500, mimetype='application/json')
             return resp("{\"message\": \"Deletion successful\"}", status=200, mimetype='application/json')
         
@@ -364,7 +364,7 @@ class RestServer:
         if result['written'] < 1:
             return resp("{\"message\": \"Failed to Insert\"}", status=500, mimetype='application/json')
 
-        return resp("{\"message\": \"Insertion successful\"}", status=200, mimetype='application/json')
+        return js({'entries': result['entries']})
 
 
     def boot(self):    

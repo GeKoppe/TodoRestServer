@@ -124,7 +124,7 @@ paths:
         - "$ref": "#/components/parameters/ListId"
       responses:
         200:
-          "$ref": "#/components/responses/200"
+          "$ref": "#/components/responses/EntryArrayResponse"
         400:
           "$ref": "#/components/responses/400"
         404:
@@ -282,6 +282,8 @@ components:
         "description":
           "$ref": "#/components/schemas/Description"
         id:
+          "$ref": "#/components/schemas/UUID"
+        list_id:
           "$ref": "#/components/schemas/UUID"
     EntryArray:
       type: object
