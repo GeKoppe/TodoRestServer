@@ -87,7 +87,7 @@ class RestServer:
     # @endpoint /search GET
     # 
     # @brief
-    # Method returns all lists with given name or list_id (name transmitted in query params)
+    # GET: Method returns all lists with given name or list_id (name transmitted in query params)
     # 
     # @return {Dict[]} List of all lists matching the name (case insensitive)
     ###
@@ -117,10 +117,11 @@ class RestServer:
         })
 
     ###
-    # @endpoint /todo-list/<id>/entries
+    # @endpoint /todo-list/<id> GET
     #
     # @brief
-    # Method returns all entries in a given todo-list, specified in the url by the id.
+    # Method returns all entries in a given todo-list, specified in the url by the id. Only used as a callback, this was formerly it's
+    # own endpoint
     #
     # @param {String} id: Is passed in the url. Specifies the todo-list of which the entries are supposed to be gotten
     # 
@@ -142,7 +143,9 @@ class RestServer:
     # @endpoint /todo-list/<id> GET; DELETE; PATCH
     #
     # @brief
-    # Method returns all entries in a given todo-list, specified in the url by the id.
+    # GET: Method returns all entries in a given todo-list, specified in the url by the id.
+    # DELETE: The list with given id is deleted, as well as all entries with that list_id
+    # PATCH: The list with given id is updated. Name must be transmitted in request body
     #
     # @return {Dict[]} List of all entries of a todo-list
     ###
@@ -209,10 +212,11 @@ class RestServer:
     
 
     ###
-    # @endpoint /todo-list
+    # @endpoint /todo-list GET; POST
     # 
     # @brief
-    # Adds a list, using the parameters transmitted in body of request
+    # GET: Retrieves all existing lists
+    # POST: Adds a list, using the parameters transmitted in body of request
     #
     # @return {Dict} Information about the added list
     ###
@@ -259,18 +263,29 @@ class RestServer:
             return resp("{\"message\": \"Failed to Insert\"}", status=500, mimetype='application/json')
         return js({'entries': [arguments]})
 
-
+    ###
+    # @endpoint /entry/<entry_id> PATCH; DELETE
+    # 
+    # @brief
+    # PATCH: Updates entry with id entry_id. name or description must be given in request body
+    # DELETE: Entry with id entry_id is deleted
+    #
+    # @return statuscode
+    ###
     def update_entry(self, entry_id):
         result = {}
+
+        # Check, whether an entry with given id exists and return 404 if there is none
         entries = self.database.select(entity='entry', args={'id': entry_id}, bool_op='AND')
         if len(entries) < 1:
             return resp("{\"message\": \"No entry with id " + entry_id + " found\"}", status=404, mimetype='application/json')
         
         if request.method == 'PATCH':
-                
+            # If request method is patch, the entry is supposed to be updated
             name = ''
             description = ''
 
+            # try to get the name from form-data and json
             if not not request.form.get('name'):
                 name = request.form.get('name')
 
@@ -279,7 +294,8 @@ class RestServer:
                     name = request.json['name']
                 except:
                     pass
-
+            
+            # try to get the description from form-data and json
             if not not request.form.get('description'):
                 description = request.form.get('description')
 
@@ -289,37 +305,52 @@ class RestServer:
                 except:
                     pass
 
+            # If neither name nor description was given, return 400
+            if name == '' and description == '':
+                return resp("{\"message\": \"No entries updated, as no parameters were given\"}", status=400, mimetype='application/json')
+            
+            # Update the entry
             arguments = {
                 'name': name,
                 'description': description
             }
-
-            if name == '' and description == '':
-                return resp("{\"message\": \"No entries updated, as no parameters were given\"}", status=400, mimetype='application/json')
-            
             result = self.database.update(entity='entry', mapping=arguments, condition={'id': entry_id}, bool_op='AND')
+            
+            # If no entries were updated, something went wrong, return 500, else return 200
             if result['entries_updated'] < 1:
                 return resp("{\"message\": \"Failed to update\"}", status=500, mimetype='application/json')
             
             return resp("{\"message\": \"Update successful\"}", status=200, mimetype='application/json')
         elif request.method == 'DELETE':
+            # delete entry from database
             result = self.database.delete(entity='entry', condition={'id': entry_id})
 
+            # If no entry was deleted, return 500 as something went wrong, else return 200
             if result['deleted'] < 1:
                 return resp("{\"message\": \"Failed to delete\"}", status=500, mimetype='application/json')
             return resp("{\"message\": \"Deletion successful\"}", status=200, mimetype='application/json')
         
         return resp("{\"message\": \"Unexpected error\"}", status=500, mimetype='application/json')
     
+    ###
+    # @endpoint /todo-list/<id>/entry POST
+    # 
+    # @brief
+    # POST: Adds an entry to the list specified by id. At least name of new entry must be given in request body
+    #
+    # @return {Dict}
+    ###
     def add_entry_to_list(self, id):
         name = ''
         description = ''
         list_id = ''
 
+        # Check, whether list with id exists and return 404, if there is none
         lists = self.database.select(entity='list', args={'id': id}, bool_op='AND')
         if len(lists) < 1:
             return resp("{\"message\": \"No list with id " + id + " found\"}", status=404, mimetype='application/json')
 
+        # Get name from request body, return 400 if no name was given
         if not request.form.get('name'): 
             try:
                 request.json['name']
@@ -332,6 +363,7 @@ class RestServer:
             if not name:
                 name = request.json['name']
 
+        # Get description from message body. Set to empty string, if it doesn't exist
         if not not request.form.get('description'):
             description = request.form.get('description')
 
@@ -350,6 +382,7 @@ class RestServer:
             new_id = str(uuid.uuid4())
             check = self.database.select(entity='entry', args={'id': new_id})
 
+        # Insert new entry into database. Return 500, if something went wrong, information about new entry otherwise
         arguments = {
             'name': name,
             'description': description,
