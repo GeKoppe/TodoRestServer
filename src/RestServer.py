@@ -351,7 +351,7 @@ class RestServer:
         # Get name from request body, return 400 if no name was given
         if not request.form.get('name'): 
             try:
-                request.json['name']
+                name = request.json['name']
             except:
                 return resp("{\"message\": \"No name for new entry given\"}", status=400, mimetype='application/json')
         else:
