@@ -174,24 +174,17 @@ class RestServer:
             # Return 200
             return resp("{\"message\": \"Deletion successful\"}", status=200, mimetype='application/json')
         elif request.method == 'PATCH':
+            # Patch request method means, that the list is supposed to be updated
             name = ''
-            description = ''
 
+            # Try to get the name from form data
             if not not request.form.get('name'):
                 name = request.form.get('name')
+
 
             if name == '':
                 try:
                     name = request.json['name']
-                except:
-                    abort(500)
-
-            if not not request.form.get('description'):
-                description = request.form.get('description')
-
-            if description == '':
-                try:
-                    description = request.json['description']
                 except:
                     pass
             
