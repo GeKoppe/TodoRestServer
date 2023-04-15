@@ -138,7 +138,7 @@ class RestServer:
         if request.method == 'DELETE':
             result = self.database.delete(entity='list', condition={'id': id}, bool_op='AND')
             self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
-            return result
+            return resp("\"message\": \"Deletion successful\"", status=200, mimetype='application/json')
         elif request.method == 'PATCH':
             name = ''
             description = ''
@@ -170,7 +170,7 @@ class RestServer:
             
             self.database.update(entity='list', mapping=arguments, condition={'id': id}, bool_op='AND')
             
-            return js({'name': name, 'id': id})
+            return resp("{\"message\": \"Update successufl\"}", status=200, mimetype='application/json')
         elif request.method == 'GET':
             list = self.database.select(entity='list', args={'id': id}, bool_op='AND')
             return js({'entries': list})
@@ -223,8 +223,9 @@ class RestServer:
         }
 
         # Insert the new todo-list into the database
-        self.database.insert(entity='list', entries=[arguments])
-        # TODO hier noch überprüfen, ob die Werte tatsächlich geschrieben wurden
+        result = self.database.insert(entity='list', entries=[arguments])
+        if result['written'] < 1:
+            return resp("\"{\"message\": \"Failed to Insert\"}", status=500, mimetype='application/json')
         return js({'entries': [arguments]})
 
 
@@ -266,10 +267,18 @@ class RestServer:
                 return resp("{\"message\": \"No entries updated, as no parameters were given\"}", status=400, mimetype='application/json')
             
             result = self.database.update(entity='entry', mapping=arguments, condition={'id': entry_id}, bool_op='AND')
+            if result['entries_updated'] < 1:
+                return resp("\"{\"message\": \"Failed to update\"}", status=500, mimetype='application/json')
+            
+            return resp("\"{\"message\": \"Update successful\"}", status=200, mimetype='application/json')
         elif request.method == 'DELETE':
             result = self.database.delete(entity='entry', condition={'id': entry_id})
-            
-        return js(result)
+
+            if result['entries_updated'] < 1:
+                return resp("\"{\"message\": \"Failed to delete\"}", status=500, mimetype='application/json')
+            return resp("\"{\"message\": \"Deletion successful\"}", status=200, mimetype='application/json')
+        
+        return resp("\"{\"message\": \"Unexpected error\"}", status=500, mimetype='application/json')
     
     def add_entry_to_list(self, id):
         name = ''
@@ -317,7 +326,11 @@ class RestServer:
             'id': new_id
         }
 
-        return js(self.database.insert(entity='entry', entries=[arguments]))
+        result = self.database.insert(entity='entry', entries=[arguments])
+        if result['written'] < 1:
+            return resp("\"{\"message\": \"Failed to Insert\"}", status=500, mimetype='application/json')
+
+        return resp("\"{\"message\": \"Insertion successful\"}", status=200, mimetype='application/json')
 
 
     def boot(self):    

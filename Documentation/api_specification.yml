@@ -89,7 +89,7 @@ paths:
 
       responses:
         200:
-          "$ref": "#/components/responses/TodoListResponse"
+          "$ref": "#/components/responses/200"
         400:
           "$ref": "#/components/responses/400"
         404:
@@ -104,9 +104,10 @@ paths:
       tags:
         - Einzelne Todo-Liste
       description: Löscht die der list_id zugeordnete Liste.
+        ACHTUNG löscht auch alle Einträge der Liste.
       responses:
         200:
-          "$ref": "#/components/responses/TodoListResponse"
+          "$ref": "#/components/responses/200"
         404:
           "$ref": "#/components/responses/404"
         405:
