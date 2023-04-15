@@ -8,6 +8,7 @@ info:
 servers:
   - url: http://localhost:5000
   - url: http://localhost:6000
+  - url: http://localhost:13376
 tags:
   - name: Todo-Listen
     description: An diesem Endpunkt können neue Todo-Listen erstellt und
@@ -53,6 +54,8 @@ paths:
             application/json:
               schema:
                 "$ref": "#/components/schemas/TodoList"
+        400:
+          "$ref": "#/components/responses/400"
         405:
           "$ref": "#/components/responses/405"
         500:
@@ -87,6 +90,8 @@ paths:
       responses:
         200:
           "$ref": "#/components/responses/TodoListResponse"
+        400:
+          "$ref": "#/components/responses/400"
         404:
           "$ref": "#/components/responses/404"
         405:
@@ -119,6 +124,8 @@ paths:
       responses:
         200:
           "$ref": "#/components/responses/200"
+        400:
+          "$ref": "#/components/responses/400"
         404:
           "$ref": "#/components/responses/404"
         405:
@@ -139,6 +146,8 @@ paths:
       responses:
         200:
           "$ref": "#/components/responses/200"
+        400:
+          "$ref": "#/components/responses/400"
         404:
           "$ref": "#/components/responses/404"
         405:
@@ -180,6 +189,8 @@ paths:
       responses:
         200:
           "$ref": "#/components/responses/TodoListArrayResponse"
+        400:
+          "$ref": "#/components/responses/400"
         405:
           "$ref": "#/components/responses/405"
         500:
@@ -320,6 +331,17 @@ components:
                 description: ""
                 example: Operation successful
 
+    400:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Erweiterte Fehlermeldung, falls vorhanden
+                example: Parameter missing
     404:
       description: Not found
       content:

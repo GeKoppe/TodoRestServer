@@ -2,6 +2,7 @@ from flask import Flask as f
 from flask import jsonify as js
 from flask import request
 from flask import abort
+from flask import Response as resp
 from DB import DB as db
 import uuid
 
@@ -81,8 +82,7 @@ class RestServer:
         name = ''
         
         if not request.args.get('name') and not request.args.get('list_id'):
-            # TODO return bad status code
-            pass
+            return resp("{\"message\": \"Neither a name nor a list_id was given\"}", status=400, mimetype='application/json')
         
         name = request.args.get('name')
         if name:
@@ -110,6 +110,9 @@ class RestServer:
     # @return {Dict[]} List of all entries of a todo-list
     ###
     def get_entries_from_list(self, id):
+        lists = self.database.select(entity='list', args={'id': id}, bool_op='AND')
+        if len(lists) < 1:
+            return resp("{\"message\": \"No list with id " + id + " found\"}", status=404, mimetype='application/json')
         return js({'entries': self.database.select(entity='entry', args={ 'list_id': id }, bool_op='AND')})
     
     def drop(self):
@@ -126,13 +129,17 @@ class RestServer:
     def change_list(self, id):
         result = {}
 
+        lists = self.database.select(entity='list', args={'id': id}, bool_op='AND')
+        if len(lists) < 1:
+            return resp("{\"message\": \"No list with id " + id + " found\"}", status=404, mimetype='application/json')
+
         if request.method == 'GET':
             return self.get_entries_from_list(id)
         if request.method == 'DELETE':
             result = self.database.delete(entity='list', condition={'id': id}, bool_op='AND')
             self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
             return result
-        elif request.method == 'POST' or request.method == 'PATCH':
+        elif request.method == 'PATCH':
             name = ''
             description = ''
 
@@ -154,22 +161,16 @@ class RestServer:
                 except:
                     pass
             
-            
-            if not description == '':
-                arguments = {
-                    'name': name,
-                    'description': description
-                }
-            else:
-                arguments = {
-                    'name': name
-                }
+            arguments = {
+                'name': name
+            }
 
-            if name == '' and description == '':
-                return
+            if name == '':
+                return resp("{\"message\": \"No new name given\"}", status=400, mimetype='application/json')
             
-            result = self.database.update(entity='list', mapping=arguments, condition={'id': id}, bool_op='AND')
-            return result
+            self.database.update(entity='list', mapping=arguments, condition={'id': id}, bool_op='AND')
+            
+            return js({'name': name, 'id': id})
         elif request.method == 'GET':
             list = self.database.select(entity='list', args={'id': id}, bool_op='AND')
             return js({'entries': list})
@@ -186,32 +187,26 @@ class RestServer:
     ###
     def add_list(self):
         name = ''
-        description = ''
 
         if request.method == 'GET':
-            if request.args.get('all', 'true'):
-                return self.get_all_lists()
-            else:
-                return js({'entries': []})
+            return self.get_all_lists()
 
         # Check, if necessary body parameter was passed and return bad status code, if it wasn't
-        if not request.form.get('name') and not request.json['name']:
-            # TODO return bad status code, some 300 stuff I guess
-            pass
+        if not request.form.get('name'):
+            try:
+                name = request.json['name']
+            except:
+                return resp("{\"message\": \"No name was given\"}", status=400, mimetype='application/json')
+            
         else:
             if request.form.get('name'):
                 name = request.form.get('name')
             else:
-                name = request.json['name']
-
-        if not not request.form.get('description'):
-            description = request.form.get('description')
-
-            if not description:
                 try:
-                    description = request.json['description']
+                    name = request.json['name']
                 except:
-                    abort(500)
+                    return resp("{\"message\": \"No name was given\"}", status=400, mimetype='application/json')
+                
         # Generate a new uuid for the new list and check the database for existing entries
         new_id = str(uuid.uuid4())
         check = self.database.select(entity='list', args={'id': new_id})
@@ -228,35 +223,39 @@ class RestServer:
         }
 
         # Insert the new todo-list into the database
-        result = self.database.insert(entity='list', entries=[arguments])
+        self.database.insert(entity='list', entries=[arguments])
         # TODO hier noch überprüfen, ob die Werte tatsächlich geschrieben wurden
         return js({'entries': [arguments]})
 
 
-    def update_entry(self, list_id, entry_id):
+    def update_entry(self, entry_id):
         result = {}
+        entries = self.database.select(entity='entry', args={'id': entry_id}, bool_op='AND')
+        if len(entries) < 1:
+            return resp("{\"message\": \"No entry with id " + entry_id + " found\"}", status=404, mimetype='application/json')
+        
         if request.method == 'PATCH':
                 
             name = ''
             description = ''
 
-            if not not request.form.get('name') or not not request.json['name']:
+            if not not request.form.get('name'):
                 name = request.form.get('name')
 
-                if not name:
-                    try:
-                        name = request.json['name']
-                    except:
-                        pass
+            if not name:
+                try:
+                    name = request.json['name']
+                except:
+                    pass
 
-            if not not request.form.get('description') or not not request.json['description']:
+            if not not request.form.get('description'):
                 description = request.form.get('description')
 
-                if not description:
-                    try:
-                        description = request.json['description']
-                    except:
-                        pass
+            if not description:
+                try:
+                    description = request.json['description']
+                except:
+                    pass
 
             arguments = {
                 'name': name,
@@ -264,11 +263,11 @@ class RestServer:
             }
 
             if name == '' and description == '':
-                pass
+                return resp("{\"message\": \"No entries updated, as no parameters were given\"}", status=400, mimetype='application/json')
             
-            result = self.database.update(entity='entry', mapping=arguments, condition={'id': entry_id, 'list_id': list_id}, bool_op='AND')
+            result = self.database.update(entity='entry', mapping=arguments, condition={'id': entry_id}, bool_op='AND')
         elif request.method == 'DELETE':
-            result = self.database.delete(entity='entry', condition={'id': entry_id, 'list_id': list_id})
+            result = self.database.delete(entity='entry', condition={'id': entry_id})
             
         return js(result)
     
@@ -277,8 +276,15 @@ class RestServer:
         description = ''
         list_id = ''
 
-        if (not request.form.get('name') and not request.json['name']):
-            pass
+        lists = self.database.select(entity='list', args={'id': id}, bool_op='AND')
+        if len(lists) < 1:
+            return resp("{\"message\": \"No list with id " + id + " found\"}", status=404, mimetype='application/json')
+
+        if not request.form.get('name'): 
+            try:
+                request.json['name']
+            except:
+                return resp("{\"message\": \"No name for new entry given\"}", status=400, mimetype='application/json')
         else:
             name = request.form.get('name')
             list_id = id
@@ -293,7 +299,7 @@ class RestServer:
             try:
                 description = request.json['description']
             except:
-                pass
+                description = ''
 
         # Generate a new uuid for the new list and check the database for existing entries
         new_id = str(uuid.uuid4())
