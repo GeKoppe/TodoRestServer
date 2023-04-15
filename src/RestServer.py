@@ -139,7 +139,7 @@ class RestServer:
         return js(self.database.drop())
 
     ###
-    # @endpoint /todo-list/<id>/entries GET; DELETE; PATCH
+    # @endpoint /todo-list/<id> GET; DELETE; PATCH
     #
     # @brief
     # Method returns all entries in a given todo-list, specified in the url by the id.
@@ -181,25 +181,29 @@ class RestServer:
             if not not request.form.get('name'):
                 name = request.form.get('name')
 
-
+            # If name wasn't in form data, try to get it from json
             if name == '':
                 try:
                     name = request.json['name']
                 except:
                     pass
-            
-            arguments = {
-                'name': name
-            }
 
+            # If there is still no name, return 400
             if name == '':
                 return resp("{\"message\": \"No new name given\"}", status=400, mimetype='application/json')
             
-            self.database.update(entity='list', mapping=arguments, condition={'id': id}, bool_op='AND')
-            
-            return resp("{\"message\": \"Update successufl\"}", status=200, mimetype='application/json')
+            # Update the list, check, if update was written and return 200, if it was, 500 otherwise
+            arguments = {
+                'name': name
+            }
+            result = self.database.update(entity='list', mapping=arguments, condition={'id': id}, bool_op='AND')
+            if result['entries_updated'] < 1:
+                return resp("{\"message\": \"Failed to update\"}", status=500, mimetype='application/json')
+
+            return resp("{\"message\": \"Update successful\"}", status=200, mimetype='application/json')
         elif request.method == 'GET':
-            list = self.database.select(entity='list', args={'id': id}, bool_op='AND')
+            # If method was get, return all entries from that list
+            list = self.database.select(entity='entry', args={'list_id': id}, bool_op='AND')
             return js({'entries': list})
         return result
     
