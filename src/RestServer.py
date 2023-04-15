@@ -1,7 +1,6 @@
 from flask import Flask as f
 from flask import jsonify as js
 from flask import request
-from flask import abort
 from flask import Response as resp
 from DB import DB as db
 import uuid
@@ -168,7 +167,7 @@ class RestServer:
 
             # Get entries for list to check, whether any entries need to be deleted
             result = self.database.select(entity='entry', args={'list_id': id}, bool_op='AND')
-            if len(result['entries']) > 0:
+            if len(result) > 0:
                 # If there are entries, delete them. If that didn't work, return 500
                 result = self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
                 if result['deleted'] < 1:
@@ -343,7 +342,6 @@ class RestServer:
     def add_entry_to_list(self, id):
         name = ''
         description = ''
-        list_id = ''
 
         # Check, whether list with id exists and return 404, if there is none
         lists = self.database.select(entity='list', args={'id': id}, bool_op='AND')
@@ -358,11 +356,12 @@ class RestServer:
                 return resp("{\"message\": \"No name for new entry given\"}", status=400, mimetype='application/json')
         else:
             name = request.form.get('name')
-            list_id = id
 
             if not name:
                 name = request.json['name']
 
+        if name == '':
+            return resp("{\"message\": \"No name for new entry given\"}", status=400, mimetype='application/json')
         # Get description from message body. Set to empty string, if it doesn't exist
         if not not request.form.get('description'):
             description = request.form.get('description')
@@ -386,7 +385,7 @@ class RestServer:
         arguments = {
             'name': name,
             'description': description,
-            'list_id': list_id,
+            'list_id': id,
             'id': new_id
         }
 
