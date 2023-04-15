@@ -36,14 +36,31 @@ class DB:
                 self.entry = []
         
     
-
+    ###
+    #   @brief
+    #   Retrieves all matching entries from the database.
+    #   Entity must be either 'list' or 'entry'.
+    #   args can only contain keys, that are valid attributes for selected entity. If, for example,
+    #   lists are selected with a description, an error is raised.
+    #
+    #   @param {String} entity: either list or entry
+    #   @param {Dictionary[]} entries: Dictionaries of all values that are to be inserted into
+    #                                   into the database. For both 
+    #   @param {String} bool_op: Either 'AND' or 'OR'. If AND is selected, entries must be fitting ALL args, otherwise they only
+    #                               have to fit one of them.
+    #   @return {Dict[]} All matching entries as an array
+    #
+    ###
     def select(self, entity=None, args=None, bool_op='AND'):
+        # Check, if entity and args are given
         if not entity or not args:
             raise RuntimeError('No type or arguments given')
 
+        # Check if entity was set correctly
         if not (entity == 'list' or entity == 'entry'):
             raise RuntimeError('Type of entity not specified correctly.')
         
+        # Check if all args are valid attributes
         for arg in args:
             if entity == 'list':
                 if not (arg in self.list_attributes):
@@ -53,8 +70,8 @@ class DB:
                 if not (arg in self.entry_attributes):
                     raise RuntimeError(entity + ' does not have attribute ' + arg)
         
+        # Count how many args exist for matching
         num_of_args = 0
-        
         for arg in args:
             num_of_args += 1
 
@@ -65,6 +82,7 @@ class DB:
                 return self.entry
 
         results = []
+
 
         if entity == 'list':
             for entry in self.list:
