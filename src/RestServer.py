@@ -17,12 +17,21 @@ class RestServer:
     database = None
 
     def __init__(self, host='', port=5000) -> None:
+        # Initialise the flask app and save host and port
         self.app = f(__name__)
         self.host = host
         self.port = port
+
+        # Initialise the database
         self.database = db()
 
+    ###
+    #
+    # Method get's called on bootup to add all endpoints to flask routing
+    #
+    ###
     def define_routes(self):
+        # Endpoint config
         endpoints = [
             {
                 'route': '/search',
@@ -65,31 +74,39 @@ class RestServer:
         for ep in endpoints:
             self.app.add_url_rule(ep['route'], ep['name'], ep['handler'], methods=ep['methods'])
         
-    
+    ###
+    # Method returns all existing todo-listsds
+    #
+    # @endpoint /todo-list GET
+    ###
     def get_all_lists(self):
         return js({'entries': self.database.select_all(entity='list')})
 
 
     ###
-    # @endpoint /search
-    #
+    # @endpoint /search GET
+    # 
     # @brief
-    # Method returns all lists with given name (name transmitted in query params)
+    # Method returns all lists with given name or list_id (name transmitted in query params)
     # 
     # @return {Dict[]} List of all lists matching the name (case insensitive)
     ###
     def search_list(self):
         name = ''
         
+        # Check, if name or list id was given as query param and return 400, if neither was
         if not request.args.get('name') and not request.args.get('list_id'):
             return resp("{\"message\": \"Neither a name nor a list_id was given\"}", status=400, mimetype='application/json')
         
+        # If name was given, make it lowercase in order to make it non case sensitive
         name = request.args.get('name')
         if name:
             name = name.lower()
 
+        # Get all existing lists
         result = self.database.select_all(entity='list')
 
+        # Iterate through all lists and push matching lists to an array in order to return
         correct_entries = []
         for entry in result:
             if entry['name'].lower() == name or entry['id'] == request.args.get('list_id'):
@@ -110,16 +127,19 @@ class RestServer:
     # @return {Dict[]} List of all entries of a todo-list
     ###
     def get_entries_from_list(self, id):
+        # Check, if id is an existing list_id. Return 400, if it isn't
         lists = self.database.select(entity='list', args={'id': id}, bool_op='AND')
         if len(lists) < 1:
             return resp("{\"message\": \"No list with id " + id + " found\"}", status=404, mimetype='application/json')
+        
+        # Get all entries for the list and return them in an array
         return js({'entries': self.database.select(entity='entry', args={ 'list_id': id }, bool_op='AND')})
     
     def drop(self):
         return js(self.database.drop())
 
     ###
-    # @endpoint /todo-list/<id>/entries
+    # @endpoint /todo-list/<id>/entries GET; DELETE; PATCH
     #
     # @brief
     # Method returns all entries in a given todo-list, specified in the url by the id.
@@ -129,16 +149,30 @@ class RestServer:
     def change_list(self, id):
         result = {}
 
+        # Check, if a list with given id exists. If not, return 404
         lists = self.database.select(entity='list', args={'id': id}, bool_op='AND')
         if len(lists) < 1:
             return resp("{\"message\": \"No list with id " + id + " found\"}", status=404, mimetype='application/json')
-
+        
         if request.method == 'GET':
+            # If request method was GET; return all entries for list corresponding to id
             return self.get_entries_from_list(id)
         if request.method == 'DELETE':
+            # If request method was delete, delete list
             result = self.database.delete(entity='list', condition={'id': id}, bool_op='AND')
-            self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
-            return resp("\"message\": \"Deletion successful\"", status=200, mimetype='application/json')
+            if result['deleted'] < 1:
+                return resp("{\"message\": \"Failed to delete list\"}", status=500, mimetype='application/json')
+
+            # Get entries for list to check, whether any entries need to be deleted
+            result = self.database.select(entity='entry', args={'list_id': id}, bool_op='AND')
+            if len(result['entries']) > 0:
+                # If there are entries, delete them. If that didn't work, return 500
+                result = self.database.delete(entity='entry', condition={'list_id': id}, bool_op='AND')
+                if result['deleted'] < 1:
+                    return resp("{\"message\": \"Successful in deleting list, failed to delete it's entries\"}", status=500, mimetype='application/json')
+
+            # Return 200
+            return resp("{\"message\": \"Deletion successful\"}", status=200, mimetype='application/json')
         elif request.method == 'PATCH':
             name = ''
             description = ''
@@ -225,7 +259,7 @@ class RestServer:
         # Insert the new todo-list into the database
         result = self.database.insert(entity='list', entries=[arguments])
         if result['written'] < 1:
-            return resp("\"{\"message\": \"Failed to Insert\"}", status=500, mimetype='application/json')
+            return resp("{\"message\": \"Failed to Insert\"}", status=500, mimetype='application/json')
         return js({'entries': [arguments]})
 
 
@@ -268,17 +302,17 @@ class RestServer:
             
             result = self.database.update(entity='entry', mapping=arguments, condition={'id': entry_id}, bool_op='AND')
             if result['entries_updated'] < 1:
-                return resp("\"{\"message\": \"Failed to update\"}", status=500, mimetype='application/json')
+                return resp("{\"message\": \"Failed to update\"}", status=500, mimetype='application/json')
             
-            return resp("\"{\"message\": \"Update successful\"}", status=200, mimetype='application/json')
+            return resp("{\"message\": \"Update successful\"}", status=200, mimetype='application/json')
         elif request.method == 'DELETE':
             result = self.database.delete(entity='entry', condition={'id': entry_id})
 
             if result['entries_updated'] < 1:
-                return resp("\"{\"message\": \"Failed to delete\"}", status=500, mimetype='application/json')
-            return resp("\"{\"message\": \"Deletion successful\"}", status=200, mimetype='application/json')
+                return resp("{\"message\": \"Failed to delete\"}", status=500, mimetype='application/json')
+            return resp("{\"message\": \"Deletion successful\"}", status=200, mimetype='application/json')
         
-        return resp("\"{\"message\": \"Unexpected error\"}", status=500, mimetype='application/json')
+        return resp("{\"message\": \"Unexpected error\"}", status=500, mimetype='application/json')
     
     def add_entry_to_list(self, id):
         name = ''
@@ -328,9 +362,9 @@ class RestServer:
 
         result = self.database.insert(entity='entry', entries=[arguments])
         if result['written'] < 1:
-            return resp("\"{\"message\": \"Failed to Insert\"}", status=500, mimetype='application/json')
+            return resp("{\"message\": \"Failed to Insert\"}", status=500, mimetype='application/json')
 
-        return resp("\"{\"message\": \"Insertion successful\"}", status=200, mimetype='application/json')
+        return resp("{\"message\": \"Insertion successful\"}", status=200, mimetype='application/json')
 
 
     def boot(self):    
