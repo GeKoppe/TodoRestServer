@@ -225,11 +225,29 @@ components:
               name:
                 "$ref": "#/components/schemas/Name"
                 required: true
+        form-data:
+          schema: 
+            type: object
+            properties:
+              name:
+                "$ref": "#/components/schemas/Name"
+                required: true
     EntryBody:
       description: Benötigt den Namen, den der Eintrag haben soll sowie optional
         die Beschreibung.
       content:
         application/json:
+          schema: 
+            type: object
+            properties:
+              name:
+                "$ref": "#/components/schemas/EntryName"
+                required: true
+              description:
+                type: string
+                description: Beschreibung des Eintrags der Todo-Liste
+                example: Ist gesund und schmeckt gut
+        form-data:
           schema: 
             type: object
             properties:
