@@ -374,6 +374,26 @@ class DB:
     # @return {Dictionary[]} All entries in the specified list
     ###
     def delete(self, entity=None, condition=None, bool_op='AND'):
+        """Deletes all entries that match the specified condition. For those entries, the properties will be set as defined in
+        the mapping parameter. If a property wasn't defined in mapping, it won't be changed
+        
+        :param entity: Entity from which all entries are to be retrieved. Mus be either 'list' or 'entry'
+        :type entity: str
+        :param mapping: Defines, how the matching entries should be deleted. Keys are properties to be upddeletedated, values are 
+                                      what is set. If a key is used, that isn't defined for that entity, an error is raised
+                                      Example:    {
+                                                      'name': 'New name that will be set for all entries that match the conditions'
+                                                  }
+        :type mapping: dict
+        :param condition: Defines which entries should be deleted. Only entries having the properties defined in condition are deleted.
+                                                  Dictionary looks the same as in mapping.
+                                                  If no conditions are given, every single entry of given entity is deleted. Use with care.
+        :type condition: dict
+        :param bool_op: Either 'AND' or 'OR'. If 'AND' is passed, entries must match ALL conditions. If 'OR' is passed, entries must only
+                                  match one condition
+        :type bool_op: str
+        :return {Dictionary[]} All entries in the specified list
+        """
         # Check if all entries are given and set correctly and raise lots of errors otherwise
         if not entity or entity == '':
             raise RuntimeError('No entity given.')
