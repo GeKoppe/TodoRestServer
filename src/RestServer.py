@@ -2,6 +2,7 @@ from flask import Flask as f
 from flask import jsonify as js
 from flask import request
 from flask import Response as resp
+from flask_cors import CORS
 from DB import DB as db
 import uuid
 
@@ -9,6 +10,7 @@ class RestServer:
 
     routes = None
     app = None
+    cors = None
 
     host = ''
     port = 5000
@@ -18,6 +20,7 @@ class RestServer:
     def __init__(self, host='', port=5000) -> None:
         # Initialise the flask app and save host and port
         self.app = f(__name__)
+        self.cors = CORS(self.app)
         self.host = host
         self.port = port
 
