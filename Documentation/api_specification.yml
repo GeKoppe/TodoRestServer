@@ -105,6 +105,8 @@ paths:
         - Einzelne Todo-Liste
       description: Löscht die der list_id zugeordnete Liste.
         ACHTUNG löscht auch alle Einträge der Liste.
+      parameters:
+        - "$ref": "#/components/parameters/ListId"
       responses:
         200:
           "$ref": "#/components/responses/200"
@@ -122,6 +124,8 @@ paths:
       description: Fügt einen Eintrag zu einer bestehenden Todo-Liste hinzu.
       parameters:
         - "$ref": "#/components/parameters/ListId"
+      requestBody:
+        "$ref": "#/components/requestBodies/EntryBody"
       responses:
         200:
           "$ref": "#/components/responses/EntryArrayResponse"
