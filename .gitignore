@@ -126,3 +126,12 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# Latex Compiler Bullshit
+*.aux
+*.fdb_latexmk
+*.fls
+*.log
+*.synctex.gz
+*.toc
+*.out
