@@ -140,6 +140,9 @@ Aus Gründen der Leserlichkeit wird in dieser Dokumentation das Wort \glqq Serve
 \\
 Alle ausgeführten Befehle werden im laufenden Text der Dokumentation angegeben. Währed des gesamten Prozesses, welcher in dieser Dokumentation beschrieben wird, wurden des Weiteren Screenshots
 gemacht, welche in den Anlagen in Kapitel \ref{ch:pics} beigefügt sind. Auf diese wird an den entsprechenden Stellen der Dokumentation verwiesen.
+\\
+Wann immer in einer Terminal Abbildung \glqq\lstinline[basicstyle={\small\ttfamily\color{black}}]|#...|\grqq{} steht, zeigt dies an, dass die Datei, welche jeweils bearbeitet wurde,
+weitere Zeilen hat, welche aber nicht relevant für den jeweils aktuellen Arbeitsschritt sind und dementsprechend ausgelassen wurden.
 
 \newpage
 \thispagestyle{empty}
@@ -158,7 +161,7 @@ In dieser Dokumentation % TODO das hier muss noch fertig gemacht werden
 % Inbetriebnahme Raspberry PI
 % Betriebssystem, Einbinden in Netzwerk
 
-\section{Konfiguration der User}
+\section{Konfiguration der User}\label{ch:user}
 % Benötigte User und warum
 % TODO Begründung anpassen.
 Nachdem das Betriebssystem des Servers installiert, der Server in das Netzwerk eingebunden und überprüft wurde, ob eine SSH Verbindung zum Server möglich ist, wurden zwei neue User angelegt, um den Server
@@ -166,7 +169,7 @@ abzusichern, da der User \glqq Pi\grqq{} der Standarduser des Betriebssystems is
 \\
 Es wurden insgesamt zwei neue User angelegt. Ein User \glqq benutzer72\grqq{} mit grundlegenden Nutzungsrechten und ein Benutzer \glqq fernzugriff\grqq{} mit administrativen Rechten. Des Weiteren kann der
 Benutzer \glqq fernzugriff\grqq{} verwendet werden, um eine SSH-Verbindung zum Server aufzubauen.
-\subsection{Anlage neuer User}
+\subsection{Anlage neuer Benutzer}\label{ch:user_add}
 Zunächst wurde der user \glqq benutzer72\grqq{} mit folgenden Befehlen angelegt:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
@@ -200,7 +203,9 @@ benutzer72\footnote{Vgl. Abbildung \ref{pic:useradd_fernzugriff} in Kapitel \ref
     \label{lst:user_fernzugriff}
     % \caption{fernzugriff anlegen}
 \end{figure}
-Da dieser Benutzer administrative Rechte auf dem Server erhalten sollte, wurde er anschließend in die Gruppe \glqq sudo\grqq{} aufgenommen\footnote{Vgl. Abbildung \ref{pic:usermod_fernzugriff} in Kapitel \ref{ch:pic_user}.}:
+
+\subsection{Konfiguration des administrativen Benutzers}\label{ch:user_admincfg}
+Da der Benutzer \glqq fernzugriff\grqq{} administrative Rechte auf dem Server erhalten sollte, wurde er anschließend in die Gruppe \glqq sudo\grqq{} aufgenommen\footnote{Vgl. Abbildung \ref{pic:usermod_fernzugriff} in Kapitel \ref{ch:pic_user}.}:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -228,7 +233,7 @@ in der Datei \lstinline[basicstyle={\small\ttfamily\color{black}}]|/etc/ssh/sshd
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
-                <@\textcolor{cfg}{\$OpenBSD: sshd\_config,v 1.103 2018/04/09 2041:22 tj Exp \$}@>    
+                <@\textcolor{cfg}{\$OpenBSD: sshd\_config,v 1.103 2018/04/09 20:41:22 tj Exp \$}@>    
 
         <@\textcolor{cfg}{\#Port 22}@>
         <@\textcolor{cfg}{\#AddressFamily any}@>
@@ -244,17 +249,208 @@ Nun besitzt der Benutzer \glqq fernzugriff\grqq{} alle notwendigen Rechte, um ih
 Umsetzungen werden mit dem Benutzer \glqq fernzugriff\grqq{} durchgeführt.
 
 
-\section{Konfiguration des Netzwerks}
-Bislang nutzte der Server die IP-Adresse, welche ihm vom DHCP-Server des Netzwerks zugewiesen wurde.
-
-
-
-\section{Konfiguration der Firewall}
-
+\section{Konfiguration des Netzwerks}\label{ch:network}
+% TODO Grund für statische IP-Adresse eintragen
+Bislang nutzte der Server die IP-Adresse, welche ihm vom DHCP-Server des Netzwerks zugewiesen wurde. Fortan sollen aber statische Einstellungen für IP-Adresse, DNS-Server und Router
+verwendet werden.
+\\
+Um dies zu konfigurieren, musste die Datei \lstinline[basicstyle={\small\ttfamily\color{black}}]|/etc/dhcpcd.conf| angepasst
+werden\footnote{Vgl. Abbildung \ref{pic:dhcpcdconf} in Kapitel \ref{ch:pics_network}}:
 \begin{figure}[H]
-    \begin{lstlisting}
-    <@\textcolor{ssh}{fernzugriff@raspberry}@>: <@\textcolor{path}{$\sim$ \$}@> sudo ufw enable
-    \end{lstlisting}
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo nano /etc/dhcpcd.conf
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:nano_dhcpcd}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{cfg}{\# Example static IP configuration}@>
+        <@\textcolor{cfg}{\#interface eth0}@>
+        static ip_address=192.168.24.113/24
+        <@\textcolor{cfg}{\#static ip6\_address=fd51:42f8:caae:d92e::ff/64}@>
+        static routers=192.168.24.254
+        static domain_name_servers=192.168.24.254
+        <@\textcolor{cfg}{\#...}@>
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:static_ip}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Um diese Änderungen in Kraft zu setzen, gab es zwei Möglichkeiten. Entweder musste der dhcpcd Dienst über folgenden Befehl neugestartet werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo systemctl restart dhcpcd.service
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:restart_dhcpcd}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Da durch den Neustart des Dienstes aber gleichzeitig auch die IP-Adresse geändert würde und somit die SSH Verbindung abgebrochen wäre, wurde sich dafür entschieden,
+den Server komplett neuzustarten:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo reboot
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:restart_raspi}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Somit ist der Server vollständig in das Netzwerk eingebunden.
+
+
+
+\section{Einrichten der Firewall}
+\subsection{Installation}\label{ch:firewall_inst}
+Im Standard ist auf Linux-basierten Systemen die Firewall IPTables installiert. Diese wurde zunächst um das Tool \glqq UFW\grqq{}\footnote{Vgl. Quelle \ref{src:ufw} in Kapitel \ref{ch:src_internet}}
+erweitert, welches es erlaubt, IPTables über simple Befehle zu konfigurieren.
+\\
+Um UFW zu installieren, wurde zunächst der apt Package Index aktualisiert, um die neueste Version von UFW im Zugriff zu haben\footnote{Vgl. Abbildung \ref{pic:udpate_apt} in Kapitel \ref{ch:pics_firewall}}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo apt update
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:update_apt}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Anschließend wurde UFW installiert\footnote{Vgl. Abbildung \ref{pic:install_firewall} in Kapitel \ref{ch:pics_firewall}}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo apt install ufw
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:install_ufw}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+
+
+\subsection{Konfiguration}\label{ch:firewall_config}
+Nachdem UFW erfolgreich installiert wurde, wurden die notwendigen Firewall Regeln für den Server eingerichtet.
+\\
+Zunächst musste sichergestellt werden, dass SSH Verbindungen zum Server auch nach Aktivierung der Firewall weiterhin möglich sein würden, allerdings nur aus dem Netzwerk, in dem der
+Server sich befindet. Da dem Server zuvor, wie in Kapitel \ref{ch:network} beschrieben, eine statische IP-Adresse und somit statisch ein Netzwerk zugewiesen wurden, muss hierbei
+nicht darauf geachtet werden, dass das Netzwerk sich in der Zukunft ändern könnte.
+\\
+Um SSH weiterhin zuzulassen, musste der Port 22 für alle eingehenden Pakete aus dem Netzwerk 192.168.24.0/24 freigeschaltet
+werden\footnote{Vgl. Abbildung \ref{pic:ssh_port_allow} in Kapitel \ref{ch:pics_firewall}}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw allow from 192.168.24.0/24 
+                                      proto tcp to any port 22
+        Rules updated
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:allow_ssh_from_network}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Da im Standard bereits Regeln für den Port 22 definiert sind, mussten diese gelöscht werden. Der Grund dafür, dass zuerst eine neue Regel eingerichtet wurde, ist,
+dass ansonsten die Gefahr bestanden hätte, das System nicht mehr per SSH zu erreichen.
+\\
+Um die alten SSH Regeln zu löschen, wurden ihre IDs benötigt. Um diese sehen zu können, musste UFW zunächst aktiviert werden, um anschließend alle Regeln anzeigen lassen
+zu können:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw enable
+        Command may disrupt existing ssh connections. Proceed with operation (y|n)? y
+        Firewall is active and enabled on system startup
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw status numbered
+        Status: active
+
+                To          Action          From
+                --          ------          ----
+        [ 1]    22/tcp      ALLOW IN        192.168.24.0/24
+        [ 2]    22          ALLOW IN        Anywhere
+        [ 3]    22 (v6)     ALLOW IN        Anywhere (v6)
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:ufw_enable_status}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Die Regeln mit den IDs 2 und 3 mussten nun gelöscht werden, damit die selbst erstellte Regel für SSH Verbindungen korrekt arbeitet:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw delete 3
+        Deleting:
+            allow 22 (v6)
+        Proceed with operation (y|n)? y
+        Rule deleted
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw delete 2
+        Deleting:
+            allow 22
+        Proceed with operation (y|n)? y
+        Rule deleted
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:firewall_delete_standard}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Des Weiteren sollten ausgehende DNS Anfragen erlaubt werden. Das DNS Protokoll arbeitet über Port 53, entsprechend musste dieser für ausgehende
+Pakete freigegeben werden\footnote{Vgl. Abbildung \ref{pic:dns_allow_out} in Kapitel \ref{ch:pics_firewall}}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw allow out to any port 53
+        Rule added
+        Rule added (v6)
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:firewall_allout_out_dns}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Der Port, über den die Rest API, nachdem sie deployed sein würde, erreichbar sein soll, wurde ebenfalls freigegeben\footnote{Vgl. Abbildung \ref{pic:api_port_allow}  in Kapitel \ref{ch:pics_firewall}}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw allow 13376
+        Rule added
+        Rule added (v6)
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:firewall_allow_api}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Alle Pakete, die keiner dieser Regeln entsprechen, sollten abgelehnt werden. Um dies zu erreichen, wurde die Standard Regel für eingehende Pakete
+angepasst\footnote{Vgl. Abbildung \ref{pic:firewall_deny_default} in Kapitel \ref{ch:pics_firewall}}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw default deny incoming
+        Default incoming policy changed to 'deny'
+        (be sure to update your rules accordingly)
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:firewall_default_deny}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Nachdem alle Regeln eingerichtet wurden, wurde noch einmal über den UFW Status überprüft, ob alle Regeln existierten\footnote{Vgl. Abbildung \ref{pic:firewall_status} in Kapitel \ref{ch:pics_firewall}}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw status numbered
+        Status: active
+
+                To          Action          From
+                --          ------          ----
+        [ 1]    13376       ALLOW IN        Anywhere
+        [ 2]    22/tcp      ALLOW IN        192.168.24.0/24
+        [ 3]    53          ALLOW OUT       Anywhere            (out)
+        [ 4]    13376 (v6)  ALLOW IN        Anywhere (v6)
+        [ 5]    53 (v6)     ALLOW OUT       Anywhere (v6)       (out)
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:firewall_all_rules}
+    % \caption{fernzugriff anlegen}
 \end{figure}
 
 
@@ -305,12 +501,24 @@ Bislang nutzte der Server die IP-Adresse, welche ihm vom DHCP-Server des Netzwer
 \end{figure}
 
 
-\subsubsection{Konfiguration Netzwerk}
+\subsubsection{Konfiguration Netzwerk}\label{ch:pics_network}
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=1]{Bilder/dhcpcdconf.png}
+        \caption{Angepasste dhcpcd.conf Datei}\label{pic:dhcpcdconf}
+    \end{center}
+\end{figure}
 
 
 
+\subsubsection{Konfiguration Firewall}\label{ch:pics_firewall}
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.7]{Bilder/update_apt.png}
+        \caption{Update APT}\label{pic:udpate_apt}
+    \end{center}
+\end{figure}
 
-\subsubsection{Konfiguration Firewall}
 \begin{figure}[H]
     \begin{center}
         \includegraphics[scale=0.7]{Bilder/install_firewall.png}
@@ -357,7 +565,11 @@ Bislang nutzte der Server die IP-Adresse, welche ihm vom DHCP-Server des Netzwer
 
 
 
-\subsection{Quellen}
+\subsection{Quellen}\label{ch:src}
+\subsubsection{Internetquellen}\label{ch:src_internet}
+\begin{enumerate}
+    \item Ubuntu Wiki: UncomplicatedFirewall. 2022 - Online unter: \newline\url{https://wiki.ubuntu.com/UncomplicatedFirewall} $\left[\text{11.06.2023}\right]$\label{src:ufw}
+\end{enumerate}
 \begin{small}
 
 \end{small}
