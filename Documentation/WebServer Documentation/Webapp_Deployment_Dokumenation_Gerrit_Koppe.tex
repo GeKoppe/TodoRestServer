@@ -5,10 +5,12 @@
 
 \usepackage{mathptmx}
 \renewcommand{\familydefault}{\sfdefault}
-\usepackage[left=2.2cm, right=2.2cm, top=2.2cm, bottom=1.8cm]{geometry}
+
+% Settings for page geometry
+\usepackage[left=2.5cm, right=2.5cm, top=2.5cm, bottom=2.5cm]{geometry}
 \usepackage[onehalfspacing]{setspace}
 
-% \usepackage{hyperref}
+% ETC Packages
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{graphicx}
@@ -21,37 +23,49 @@
 
 \usepackage{xcolor}
 \usepackage{floatflt,epsfig}
+\usepackage[framemethod=tikz]{mdframed}
 % \usepackage[fleqn]{amsmath}
 \usepackage{listings}
 \usepackage{color}
 %\usepackage{minted}
 
-\definecolor{dkgreen}{rgb}{0,0.6,0}
-\definecolor{gray}{rgb}{0.5,0.5,0.5}
-\definecolor{mauve}{rgb}{0.58,0,0.82}
+\mdfsetup{
+    skipabove=\topskip ,
+    skipbelow=\topskip ,
+    innertopmargin=-0.2cm,
+    innerbottommargin=-0.2cm,
+    innerleftmargin=0cm
+}
 
-\lstset{
-    language=bash,
+\definecolor{dkgreen}{rgb}{0,0.6,0} % comment style
+\definecolor{gray}{rgb}{0.5,0.5,0.5}
+\definecolor{mauve}{rgb}{0.58,0,0.82} 
+\definecolor{BBS}{RGB}{0,169,164} % Teal color of BBS logo
+\definecolor{ssh}{RGB}{22,198,12} % bash connection / user
+\definecolor{path}{RGB}{59,120,184} % Bash current working directory
+\definecolor{bbg}{RGB}{50,50,50} % Bash Background
+\definecolor{cfg}{RGB}{58,150,221} % Bash Background
+
+\lstset{ % defining an environment for bash code
+    escapeinside={<@}{@>},
     aboveskip=3mm,
     belowskip=3mm,
     showstringspaces=false,
     columns=flexible,
-    basicstyle={\small\ttfamily},
+    basicstyle={\small\ttfamily\color{white}},
     numbers=none,
-    numberstyle=\tiny\color{gray},
-    keywordstyle=\color{mauve},
+    numberstyle=\tiny\color{white},
     commentstyle=\color{dkgreen},
     stringstyle=\color{blue},
     breaklines=true,
     breakatwhitespace=true,
     tabsize=3,
     morekeywords={
-        sudo, apt, git   
+        sudo, apt, git, ufw
     }
 }
 
-\definecolor{BBS}{RGB}{0,169,164}
-
+% Define colors for headings of different parts of the documentation
 \sectionfont{\color{BBS}}
 \subsectionfont{\color{BBS}}
 \subsubsectionfont{\color{BBS}}
@@ -61,7 +75,7 @@
 \thispagestyle{empty}
 \ihead{
     \begin{footnotesize}
-        Deployment einer Webapp
+        Deployment einer Rest API
     \end{footnotesize}
 }
 \chead{
@@ -117,31 +131,131 @@
 \end{center}
 \newpage
 \thispagestyle{empty}
+\begin{Large}
+    \begin{flushleft}
+        \textbf{\textcolor{BBS}{Anmerkungen}}
+    \end{flushleft}
+\end{Large}
+Aus Gründen der Leserlichkeit wird in dieser Dokumentation das Wort \glqq Server\grqq{} verwendet, wann immer vom Raspberry Pi die Rede ist.
+\\
+Alle ausgeführten Befehle werden im laufenden Text der Dokumentation angegeben. Währed des gesamten Prozesses, welcher in dieser Dokumentation beschrieben wird, wurden des Weiteren Screenshots
+gemacht, welche in den Anlagen in Kapitel \ref{ch:pics} beigefügt sind. Auf diese wird an den entsprechenden Stellen der Dokumentation verwiesen.
+
+\newpage
+\thispagestyle{empty}
 \tableofcontents
 \newpage
 \clearpage
 \pagenumbering{arabic}
+
+
 \section{Einleitung}
-In dieser Dokumentation %TODO das hier muss noch fertig gemacht werden
+In dieser Dokumentation % TODO das hier muss noch fertig gemacht werden
 
 
 
 \section{Vorbereitungen}
-
-
-
+% Inbetriebnahme Raspberry PI
+% Betriebssystem, Einbinden in Netzwerk
 
 \section{Konfiguration der User}
+% Benötigte User und warum
+% TODO Begründung anpassen.
+Nachdem das Betriebssystem des Servers installiert, der Server in das Netzwerk eingebunden und überprüft wurde, ob eine SSH Verbindung zum Server möglich ist, wurden zwei neue User angelegt, um den Server
+abzusichern, da der User \glqq Pi\grqq{} der Standarduser des Betriebssystems ist und somit allgemein bekannt.
+\\
+Es wurden insgesamt zwei neue User angelegt. Ein User \glqq benutzer72\grqq{} mit grundlegenden Nutzungsrechten und ein Benutzer \glqq fernzugriff\grqq{} mit administrativen Rechten. Des Weiteren kann der
+Benutzer \glqq fernzugriff\grqq{} verwendet werden, um eine SSH-Verbindung zum Server aufzubauen.
+\subsection{Anlage neuer User}
+Zunächst wurde der user \glqq benutzer72\grqq{} mit folgenden Befehlen angelegt:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{pi@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo useradd -m benutzer72
+        <@\textcolor{ssh}{pi@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo passwd benutzer72
+        New password:
+        Retype new password:
+        passwd: password updated successfully
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:user_72}
+    % \caption{benutzer72 anlegen}
+\end{figure}
+Der Befehl \lstinline[basicstyle={\small\ttfamily\color{black}}]|useradd| dient dazu, den neuen Benutzer anzulegen. Mit dem flag \lstinline[basicstyle={\small\ttfamily\color{black}}]|-m| wird außerdem
+automatisch ein Home-Verzeichnis für den neuen Benutzer erzeugt. Des Weiteren wurde dem neuen Benutzer mittels des \lstinline[basicstyle={\small\ttfamily\color{black}}]|passwd| Befehls ein neues Passwort
+zugewiesen\footnote{Vgl. Abbildung \ref{pic:useradd_72} in Kapitel \ref{ch:pic_user}}.
+\\
+Nachdem der Benutzer benutzer72 konfiguriert wurde, wurde ein neuer administrativer Nutzer \glqq fernzugriff\grqq{} angelegt. Die Vorgehensweise war hier zunächst identisch zu der der Neuanlage von
+benutzer72\footnote{Vgl. Abbildung \ref{pic:useradd_fernzugriff} in Kapitel \ref{ch:pic_user}}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{pi@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo useradd -m fernzugriff
+        <@\textcolor{ssh}{pi@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo passwd fernzugriff
+        New password:
+        Retype new password:
+        passwd: password updated successfully
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:user_fernzugriff}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Da dieser Benutzer administrative Rechte auf dem Server erhalten sollte, wurde er anschließend in die Gruppe \glqq sudo\grqq{} aufgenommen\footnote{Vgl. Abbildung \ref{pic:usermod_fernzugriff} in Kapitel \ref{ch:pic_user}.}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{pi@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo usermod -aG sudo fernzugriff
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:usermod_fernzugriff}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Hier dient der Befehl \lstinline[basicstyle={\small\ttfamily\color{black}}]|usermod| allgemein dazu, einen User zu modifizieren. Der Flag \lstinline[basicstyle={\small\ttfamily\color{black}}]|-aG| gibt an,
+dass der User einer Gruppe hinzugefügt werden soll, welche wiederum direkt hinter dem Flag definiert ist (in diesem Fall \glqq sudo\grqq).
+\\
+Abschließend wurde dem Benutzer \glqq fernzugriff\grqq{} noch das Recht gewährt, sich per SSH mit dem Server zu verbinden. Dafür wurde die Einstellung \lstinline[basicstyle={\small\ttfamily\color{black}}]|AllowUsers|
+in der Datei \lstinline[basicstyle={\small\ttfamily\color{black}}]|/etc/ssh/sshd_config| angepasst\footnote{Vgl. Abbildung \ref{pic:ssh_fernzugriff} in Kapitel \ref{ch:pic_user}}:
 
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{pi@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo nano /etc/ssh/sshd_config
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:nano_sshd_config}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+                <@\textcolor{cfg}{\$OpenBSD: sshd\_config,v 1.103 2018/04/09 2041:22 tj Exp \$}@>    
+
+        <@\textcolor{cfg}{\#Port 22}@>
+        <@\textcolor{cfg}{\#AddressFamily any}@>
+        AllowUsers      fernzugriff
+        <@\textcolor{cfg}{\#...}@>
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:fernzugriff_ssh}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+% TODO User Pi neues passwort geben
+Nun besitzt der Benutzer \glqq fernzugriff\grqq{} alle notwendigen Rechte, um ihn für administrative Tätigkeiten zu verwenden. Fortan wird der Benutzer \glqq pi\grqq{} nicht mehr verwendet und alle
+Umsetzungen werden mit dem Benutzer \glqq fernzugriff\grqq{} durchgeführt.
 
 
 \section{Konfiguration des Netzwerks}
-
+Bislang nutzte der Server die IP-Adresse, welche ihm vom DHCP-Server des Netzwerks zugewiesen wurde.
 
 
 
 \section{Konfiguration der Firewall}
 
+\begin{figure}[H]
+    \begin{lstlisting}
+    <@\textcolor{ssh}{fernzugriff@raspberry}@>: <@\textcolor{path}{$\sim$ \$}@> sudo ufw enable
+    \end{lstlisting}
+\end{figure}
 
 
 
@@ -153,11 +267,42 @@ In dieser Dokumentation %TODO das hier muss noch fertig gemacht werden
 
 
 
+\section{Veröffentlichung Swagger Dokumentation auf Webserver}
+
+
+
 \newpage
 \section{Anlagen}
-\subsection{Bilder}
+\subsection{Bilder}\label{ch:pics}
 
-\subsubsection{Konfiguration User}
+\subsubsection{Konfiguration User}\label{ch:pic_user}
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=1]{Bilder/useradd_benutzer72.png}
+        \caption{Anlage und Konfiguration des Benutzers \glqq benutzer72\grqq}\label{pic:useradd_72}
+    \end{center}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=1]{Bilder/useradd_fernzugriff.png}
+        \caption{Anlage und Konfiguration des Benutzers \glqq fernzugriff\grqq}\label{pic:useradd_fernzugriff}
+    \end{center}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=1]{Bilder/sudo_fernzugriff.png}
+        \caption{Benutzer \glqq fernzugriff\grqq{} in die Gruppe sudo aufnehmen}\label{pic:usermod_fernzugriff}
+    \end{center}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=1]{Bilder/ssh_fernzugriff.png}
+        \caption{Benutzer \glqq fernzugriff\grqq{} SSH-Rechte gewähren}\label{pic:ssh_fernzugriff}
+    \end{center}
+\end{figure}
 
 
 \subsubsection{Konfiguration Netzwerk}
