@@ -153,7 +153,12 @@ weitere Zeilen hat, welche aber nicht relevant für den jeweils aktuellen Arbeit
 
 
 \section{Einleitung}
-In dieser Dokumentation % TODO das hier muss noch fertig gemacht werden
+In dieser Dokumentation wird die Konfiguration eines Raspberry Pi\footnote{Fortan \glqq Server\grqq} als Host einer Rest API, sowie das Deployment besagter Rest API beschrieben.
+\\
+Es wird zunächst auf allgemeine Vorbereitungen eingegangen. Anschließend wird beschrieben, wie die User und das Netzwerk, sowie die Firewall des Servers konfiguriert werden müssen.
+Abschließend wird die Installation des Webservers, sowie das Deployment der Rest API auf dem Server beschrieben.
+\\
+Sämtliche Arbeitsschritte sind sowohl durch die jeweiligen Terminal Befehle, als auch durch Screenshots die während der Umsetzung entstanden sind, dokumentiert.
 
 
 
@@ -455,17 +460,95 @@ Nachdem alle Regeln eingerichtet wurden, wurde noch einmal über den UFW Status 
 
 
 
-\section{Installation Apache2}
+\section{Einrichtung Webserver}
+Nachdem die Firewall Regeln eingerichtet wurden, konnte der Webserver installiert und konfiguriert werden. Die Wahl fiel hier auf den Webserver Apache2.
+% TODO Warum Apache2?
+
+\subsection{Installation}
+Da der Package Index bereits aktualisiert wurde, konnte der Webserver direkt installiert werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo apt install apache2
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:apache_install}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+
+
+\subsection{Konfiguration Webserver}
+Da der Apache2 Server im Standard bereits die Ports für HTTP abhört, mussten diese nicht mehr konfiguriert werden.
+\\
+Nach der Installation wurde zunächst eine einfache Startseite für den Webserver eingerichtet. Dafür musste die Datei
+\lstinline[basicstyle={\small\ttfamily\color{black}}]|/var/www/html/index.html|, welche bei der Installation des Apache2 angelegt wurde, angepasst werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> cd /var/www/html
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/var/www/html \$}@> sudo nano index.html
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:index_nano}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{cfg}{<html>}@>
+            <@\textcolor{cfg}{<body>}@>
+                <@\textcolor{cfg}{<h1>}@>Todo-Listen Verwaltung<@\textcolor{cfg}{</h1>}@>
+                <@\textcolor{cfg}{<h3>}@>Gerrit Koppe<@\textcolor{cfg}{</h3>}@>
+            <@\textcolor{cfg}{</body>}@>
+        <@\textcolor{cfg}{</html>}@>
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:index_apache2}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+
+\section{Einrichtung Rest API}
 
 
 
-\section{Inbetriebnahme Rest API}
-
-
-
-\section{Veröffentlichung Swagger Dokumentation auf Webserver}
-
-
+\section{Veröffentlichung der Swagger Dokumentation auf dem Webserver}
+Damit die veröffentlichte Rest API bedient werden kann, sollte die Swagger Dokumentation auf dem Webserver einzusehen sein.
+\\
+Um dies zu erreichen, wurde zunächst die Datei \lstinline[basicstyle={\small\ttfamily\color{black}}]|/var/www/html/api/index.html| angelegt, welche als Homepage für die Dokumentation
+dienen sollte:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> cd /var/www/html/api
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/var/www/html/api \$}@> sudo nano index.html
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:doc_nano}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{cfg}{<html>}@>
+            <@\textcolor{cfg}{<body>}@>
+                <@\textcolor{cfg}{<h1>}@>Projekt Todo-Listen Verwaltung<@\textcolor{cfg}{</h1>}@>
+                <@\textcolor{cfg}{<br />}@>
+                <@\textcolor{cfg}{<h2>}@>Client Dokumentation<@\textcolor{cfg}{</h2>}@><@\textcolor{cfg}{<br />}@>
+                <@\textcolor{cfg}{<a }@><@\textcolor{red}{href=}@><@\textcolor{dkgreen}{'./documentation/Client/API-Documentation/index.html'}@><@\textcolor{cfg}{>}@>
+                    API-Dokumentation des Rest Clients
+                <@\textcolor{cfg}{</a>}@>
+                <@\textcolor{cfg}{<br />}@>
+                <@\textcolor{cfg}{<h2>}@>Client Dokumentation<@\textcolor{cfg}{</h2>}@><@\textcolor{cfg}{<br />}@>
+                <@\textcolor{cfg}{<a }@><@\textcolor{red}{href=}@><@\textcolor{dkgreen}{'https://github.com/LeichtMatrosee/RestClient'}@><@\textcolor{cfg}{>}@>
+                    Repo des Rest Clients
+                <@\textcolor{cfg}{</a>}@>
+            <@\textcolor{cfg}{</body>}@>
+        <@\textcolor{cfg}{</html>}@>
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:index_apache2}
+    % \caption{fernzugriff anlegen}
+\end{figure}
 
 \newpage
 \section{Anlagen}
