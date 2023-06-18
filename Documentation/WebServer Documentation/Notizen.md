@@ -23,3 +23,12 @@
 1. benutzer72 User mit Passwort "elo123" hinzugefügt
 2. fernzugriff User mit Passwort "helloelo123" hinzugefügt
 3. In /etc/ssh/sshd_config Fernzugriff unter AllowUsers hinzugefügt
+
+
+# Docker
+
+Basically diesem Ding hier folgen: https://docs.docker.com/engine/install/ubuntu/
+
+1. Potenzielle Konfliktpakete deinstallieren
+2. Installiere Zertifikat (hat irgendwie nicht funktioniert)
+3. 

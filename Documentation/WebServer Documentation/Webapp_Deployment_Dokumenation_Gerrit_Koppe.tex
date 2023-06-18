@@ -425,6 +425,20 @@ Der Port, über den die Rest API, nachdem sie deployed sein würde, erreichbar s
     \label{lst:firewall_allow_api}
     % \caption{fernzugriff anlegen}
 \end{figure}
+Außerdem soll der Webserver aus allen Netzwerken erreichbar sein. Da wir die HTTP Kommunikation nicht mit SSL verschlüsseln werden, reicht es hier, den Port 80
+für alle Netzwerke freizugeben:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw allow 80
+        Rule added
+        Rule added (v6)
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:firewall_allow_http}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+
 Alle Pakete, die keiner dieser Regeln entsprechen, sollten abgelehnt werden. Um dies zu erreichen, wurde die Standard Regel für eingehende Pakete
 angepasst\footnote{Vgl. Abbildung \ref{pic:firewall_deny_default} in Kapitel \ref{ch:pics_firewall}}:
 \begin{figure}[H]
@@ -438,7 +452,7 @@ angepasst\footnote{Vgl. Abbildung \ref{pic:firewall_deny_default} in Kapitel \re
     \label{lst:firewall_default_deny}
     % \caption{fernzugriff anlegen}
 \end{figure}
-Nachdem alle Regeln eingerichtet wurden, wurde noch einmal über den UFW Status überprüft, ob alle Regeln existierten\footnote{Vgl. Abbildung \ref{pic:firewall_status} in Kapitel \ref{ch:pics_firewall}}:
+Nachdem alle Regeln eingerichtet wurden, wurde noch einmal über den UFW Status überprüft, ob alle Regeln existierten:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -450,8 +464,10 @@ Nachdem alle Regeln eingerichtet wurden, wurde noch einmal über den UFW Status 
         [ 1]    13376       ALLOW IN        Anywhere
         [ 2]    22/tcp      ALLOW IN        192.168.24.0/24
         [ 3]    53          ALLOW OUT       Anywhere            (out)
-        [ 4]    13376 (v6)  ALLOW IN        Anywhere (v6)
-        [ 5]    53 (v6)     ALLOW OUT       Anywhere (v6)       (out)
+        [ 4]    80          ALLOW OUT       Anywhere            
+        [ 5]    13376 (v6)  ALLOW IN        Anywhere (v6)
+        [ 6]    53 (v6)     ALLOW OUT       Anywhere (v6)       (out)
+        [ 7]    80 (v6)     ALLOW OUT       Anywhere (v6)
         \end{lstlisting}
     \end{mdframed}
     \label{lst:firewall_all_rules}
@@ -481,7 +497,8 @@ Da der Package Index bereits aktualisiert wurde, konnte der Webserver direkt ins
 Da der Apache2 Server im Standard bereits die Ports für HTTP abhört, mussten diese nicht mehr konfiguriert werden.
 \\
 Nach der Installation wurde zunächst eine einfache Startseite für den Webserver eingerichtet. Dafür musste die Datei
-\lstinline[basicstyle={\small\ttfamily\color{black}}]|/var/www/html/index.html|, welche bei der Installation des Apache2 angelegt wurde, angepasst werden:
+\lstinline[basicstyle={\small\ttfamily\color{black}}]|/var/www/html/index.html|, welche bei der Installation des Apache2 angelegt wurde, angepasst
+werden:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -506,8 +523,41 @@ Nach der Installation wurde zunächst eine einfache Startseite für den Webserve
     \label{lst:index_apache2}
     % \caption{fernzugriff anlegen}
 \end{figure}
+Diese konnte nun erreicht werden, sobald die IP-Adresse des Servers im Browser aufgerufen wurde\footnote{Vgl. Abbildung \ref{pic:apache_simple_page} in Kapitel \ref{ch:pics_webserver}}.
 
-\section{Einrichtung Rest API}
+\section{Einrichtung Rest API auf Betriebsystem}
+Um die Rest API auf dem Betriebsystem einzurichten, mussten zunächst die Skripte auf dem Server abgelegt werden. Zunächst wurde
+ein neuer Ordner \lstinline[basicstyle={\small\ttfamily\color{black}}]|api| im Verzeichnis \lstinline[basicstyle={\small\ttfamily\color{black}}]|/var|
+angelegt:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> cd /var
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/var \$}@> sudo mkdir todo-api
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:api_folder}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Da die Rest API sich in einem Git Repository befindet, konnte dieses in den neu erstellten Ordner geklont werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/var \$}@> cd todo-api
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/var/todo-api \$}@> sudo git clone 
+                "https://github.com/LeichtMatrosee/TodoRestServer.git"
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:api_folder}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Nachdem die Rest API auf den Server geklont wurde, mussten noch alle Python Libraries nachinstalliert werden, welche noch nicht
+auf dem Server existierten (in diesem Fall nur \lstinline[basicstyle={\small\ttfamily\color{black}}]|flask_cors|, dies kann
+sich bei anderen Installationen unterscheiden).
+\\
+Anschließend wurde überprüft, ob die API lauffähig war:
+
+
 
 
 
@@ -637,10 +687,11 @@ dienen sollte:
     \end{center}
 \end{figure}
 
+\subsubsection{Konfiguration Webserver}\label{ch:pics_webserver}
 \begin{figure}[H]
     \begin{center}
-        \includegraphics[scale=0.7]{Bilder/ufw_status_all_rules.png}
-        \caption{Übersicht aller angelegten Regeln}\label{pic:firewall_status}
+        \includegraphics[scale=0.7]{Bilder/apache_simple_start_page.png}
+        \caption{Alle eingehenden Pakete ohne Regel verbieten}\label{pic:apache_simple_page}
     \end{center}
 \end{figure}
 

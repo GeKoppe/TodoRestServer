@@ -1,4 +1,4 @@
 from RestServer import RestServer as rs
 
-server = rs(host='localhost', port=13376)
+server = rs(host='0.0.0.0', port=13376)
 server.boot()
