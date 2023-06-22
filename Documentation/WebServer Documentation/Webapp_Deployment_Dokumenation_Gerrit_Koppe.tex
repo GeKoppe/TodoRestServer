@@ -191,10 +191,10 @@ Zunächst wurde der user \glqq benutzer72\grqq{} mit folgenden Befehlen angelegt
 \end{figure}
 Der Befehl \lstinline[basicstyle={\small\ttfamily\color{black}}]|useradd| dient dazu, den neuen Benutzer anzulegen. Mit dem flag \lstinline[basicstyle={\small\ttfamily\color{black}}]|-m| wird außerdem
 automatisch ein Home-Verzeichnis für den neuen Benutzer erzeugt. Des Weiteren wurde dem neuen Benutzer mittels des \lstinline[basicstyle={\small\ttfamily\color{black}}]|passwd| Befehls ein neues Passwort
-zugewiesen\footnote{Vgl. Abbildung \ref{pic:useradd_72} in Kapitel \ref{ch:pic_user}}.
+zugewiesen.
 \\
 Nachdem der Benutzer benutzer72 konfiguriert wurde, wurde ein neuer administrativer Nutzer \glqq fernzugriff\grqq{} angelegt. Die Vorgehensweise war hier zunächst identisch zu der der Neuanlage von
-benutzer72\footnote{Vgl. Abbildung \ref{pic:useradd_fernzugriff} in Kapitel \ref{ch:pic_user}}:
+benutzer72:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -210,7 +210,7 @@ benutzer72\footnote{Vgl. Abbildung \ref{pic:useradd_fernzugriff} in Kapitel \ref
 \end{figure}
 
 \subsection{Konfiguration des administrativen Benutzers}\label{ch:user_admincfg}
-Da der Benutzer \glqq fernzugriff\grqq{} administrative Rechte auf dem Server erhalten sollte, wurde er anschließend in die Gruppe \glqq sudo\grqq{} aufgenommen\footnote{Vgl. Abbildung \ref{pic:usermod_fernzugriff} in Kapitel \ref{ch:pic_user}.}:
+Da der Benutzer \glqq fernzugriff\grqq{} administrative Rechte auf dem Server erhalten sollte, wurde er anschließend in die Gruppe \glqq sudo\grqq{} aufgenommen:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -224,7 +224,7 @@ Hier dient der Befehl \lstinline[basicstyle={\small\ttfamily\color{black}}]|user
 dass der User einer Gruppe hinzugefügt werden soll, welche wiederum direkt hinter dem Flag definiert ist (in diesem Fall \glqq sudo\grqq).
 \\
 Abschließend wurde dem Benutzer \glqq fernzugriff\grqq{} noch das Recht gewährt, sich per SSH mit dem Server zu verbinden. Dafür wurde die Einstellung \lstinline[basicstyle={\small\ttfamily\color{black}}]|AllowUsers|
-in der Datei \lstinline[basicstyle={\small\ttfamily\color{black}}]|/etc/ssh/sshd_config| angepasst\footnote{Vgl. Abbildung \ref{pic:ssh_fernzugriff} in Kapitel \ref{ch:pic_user}}:
+in der Datei \lstinline[basicstyle={\small\ttfamily\color{black}}]|/etc/ssh/sshd_config|:
 
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
@@ -260,7 +260,7 @@ Bislang nutzte der Server die IP-Adresse, welche ihm vom DHCP-Server des Netzwer
 verwendet werden.
 \\
 Um dies zu konfigurieren, musste die Datei \lstinline[basicstyle={\small\ttfamily\color{black}}]|/etc/dhcpcd.conf| angepasst
-werden\footnote{Vgl. Abbildung \ref{pic:dhcpcdconf} in Kapitel \ref{ch:pics_network}}:
+werden:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -315,7 +315,7 @@ Somit ist der Server vollständig in das Netzwerk eingebunden.
 Im Standard ist auf Linux-basierten Systemen die Firewall IPTables installiert. Diese wurde zunächst um das Tool \glqq UFW\grqq{}\footnote{Vgl. Quelle \ref{src:ufw} in Kapitel \ref{ch:src_internet}}
 erweitert, welches es erlaubt, IPTables über simple Befehle zu konfigurieren.
 \\
-Um UFW zu installieren, wurde zunächst der apt Package Index aktualisiert, um die neueste Version von UFW im Zugriff zu haben\footnote{Vgl. Abbildung \ref{pic:udpate_apt} in Kapitel \ref{ch:pics_firewall}}:
+Um UFW zu installieren, wurde zunächst der apt Package Index aktualisiert, um die neueste Version von UFW im Zugriff zu haben:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -325,7 +325,7 @@ Um UFW zu installieren, wurde zunächst der apt Package Index aktualisiert, um d
     \label{lst:update_apt}
     % \caption{fernzugriff anlegen}
 \end{figure}
-Anschließend wurde UFW installiert\footnote{Vgl. Abbildung \ref{pic:install_firewall} in Kapitel \ref{ch:pics_firewall}}:
+Anschließend wurde UFW installiert:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -345,7 +345,7 @@ Server sich befindet. Da dem Server zuvor, wie in Kapitel \ref{ch:network} besch
 nicht darauf geachtet werden, dass das Netzwerk sich in der Zukunft ändern könnte.
 \\
 Um SSH weiterhin zuzulassen, musste der Port 22 für alle eingehenden Pakete aus dem Netzwerk 192.168.24.0/24 freigeschaltet
-werden\footnote{Vgl. Abbildung \ref{pic:ssh_port_allow} in Kapitel \ref{ch:pics_firewall}}:
+werden:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -401,7 +401,7 @@ Die Regeln mit den IDs 2 und 3 mussten nun gelöscht werden, damit die selbst er
     % \caption{fernzugriff anlegen}
 \end{figure}
 Des Weiteren sollten ausgehende DNS Anfragen erlaubt werden. Das DNS Protokoll arbeitet über Port 53, entsprechend musste dieser für ausgehende
-Pakete freigegeben werden\footnote{Vgl. Abbildung \ref{pic:dns_allow_out} in Kapitel \ref{ch:pics_firewall}}:
+Pakete freigegeben werden:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -413,7 +413,7 @@ Pakete freigegeben werden\footnote{Vgl. Abbildung \ref{pic:dns_allow_out} in Kap
     \label{lst:firewall_allout_out_dns}
     % \caption{fernzugriff anlegen}
 \end{figure}
-Der Port, über den die Rest API, nachdem sie deployed sein würde, erreichbar sein soll, wurde ebenfalls freigegeben\footnote{Vgl. Abbildung \ref{pic:api_port_allow}  in Kapitel \ref{ch:pics_firewall}}:
+Der Port, über den die Rest API, nachdem sie deployed sein würde, erreichbar sein soll, wurde ebenfalls freigegeben:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -440,7 +440,7 @@ für alle Netzwerke freizugeben:
 \end{figure}
 
 Alle Pakete, die keiner dieser Regeln entsprechen, sollten abgelehnt werden. Um dies zu erreichen, wurde die Standard Regel für eingehende Pakete
-angepasst\footnote{Vgl. Abbildung \ref{pic:firewall_deny_default} in Kapitel \ref{ch:pics_firewall}}:
+angepasst:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -464,10 +464,10 @@ Nachdem alle Regeln eingerichtet wurden, wurde noch einmal über den UFW Status 
         [ 1]    13376       ALLOW IN        Anywhere
         [ 2]    22/tcp      ALLOW IN        192.168.24.0/24
         [ 3]    53          ALLOW OUT       Anywhere            (out)
-        [ 4]    80          ALLOW OUT       Anywhere            
+        [ 4]    80          ALLOW IN        Anywhere            
         [ 5]    13376 (v6)  ALLOW IN        Anywhere (v6)
         [ 6]    53 (v6)     ALLOW OUT       Anywhere (v6)       (out)
-        [ 7]    80 (v6)     ALLOW OUT       Anywhere (v6)
+        [ 7]    80 (v6)     ALLOW IN        Anywhere (v6)
         \end{lstlisting}
     \end{mdframed}
     \label{lst:firewall_all_rules}
@@ -523,17 +523,17 @@ werden:
     \label{lst:index_apache2}
     % \caption{fernzugriff anlegen}
 \end{figure}
-Diese konnte nun erreicht werden, sobald die IP-Adresse des Servers im Browser aufgerufen wurde\footnote{Vgl. Abbildung \ref{pic:apache_simple_page} in Kapitel \ref{ch:pics_webserver}}.
+Diese konnte nun erreicht werden, sobald die IP-Adresse des Servers im Browser aufgerufen wurde.
 
 \section{Einrichtung Rest API auf Betriebsystem}
 Um die Rest API auf dem Betriebsystem einzurichten, mussten zunächst die Skripte auf dem Server abgelegt werden. Zunächst wurde
-ein neuer Ordner \lstinline[basicstyle={\small\ttfamily\color{black}}]|api| im Verzeichnis \lstinline[basicstyle={\small\ttfamily\color{black}}]|/var|
-angelegt:
+ein neuer Ordner \lstinline[basicstyle={\small\ttfamily\color{black}}]|todo-api| im Home Verzeichnis des Users fernzugriff angelegt.
+Es wurde sich hier für das Homeverzeichnis entschieden, da die API Dateien und Ordner anlegt und das Skript ursprünglich nicht dafür gedacht war, auf
+einem Linux System zu arbeiten.
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
-        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> cd /var
-        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/var \$}@> sudo mkdir todo-api
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo mkdir todo-api
         \end{lstlisting}
     \end{mdframed}
     \label{lst:api_folder}
@@ -543,12 +543,12 @@ Da die Rest API sich in einem Git Repository befindet, konnte dieses in den neu 
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
-        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/var \$}@> cd todo-api
-        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/var/todo-api \$}@> sudo git clone 
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> cd todo-api
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$/todo-api \$}@> sudo git clone 
                 "https://github.com/LeichtMatrosee/TodoRestServer.git"
         \end{lstlisting}
     \end{mdframed}
-    \label{lst:api_folder}
+    \label{lst:api_clone}
     % \caption{fernzugriff anlegen}
 \end{figure}
 Nachdem die Rest API auf den Server geklont wurde, mussten noch alle Python Libraries nachinstalliert werden, welche noch nicht
@@ -556,9 +556,107 @@ auf dem Server existierten (in diesem Fall nur \lstinline[basicstyle={\small\ttf
 sich bei anderen Installationen unterscheiden).
 \\
 Anschließend wurde überprüft, ob die API lauffähig war:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$/todo-api \$}@> cd TodoRestServer/src
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$/todo-api/TodoRestServer/src \$}@> python3 App.py
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:api_test}
+    % \caption{fernzugriff anlegen}
+\end{figure}
 
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.4]{Bilder/api_postman_test_post.png}
+        \caption{Teste POST}\label{pic:api_postman_test_post}
+    \end{center}
+\end{figure}
 
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.4]{Bilder/api_postman_test_get.png}
+        \caption{Teste GET}\label{pic:api_postman_test_get}
+    \end{center}
+\end{figure}
+Es lassen sich neue Todo-Listen anlegen, sowie die existenten Todo-Listen abrufen, die Rest API wurde somit erfolgreich auf dem System installiert.
+\\
+Nun muss noch sichergestellt werden, dass die API auch nach Neustart des Systems noch erreichbar ist. Dafür muss ein Dienst angelegt werden, der das Skript bei Start
+des Systems ausführt. Um den Dienst anzulegen, muss eine \lstinline[basicstyle={\small\ttfamily\color{black}}]|.service| Datei im Systemverzeichnis des Servers angelegt
+werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$/todo-api \$}@> cd /lib/systemd/system
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/lib/systemd/system \$}@> sudo nano todoapi.service
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:create_service_file}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+In die Datei muss folgender Text eingefügt werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{path}{$\left[\text{Unit}\right]$}@>
+        Description=Todo Rest API
+        After=multi-user.target
+        Conflicts=getty@tty1.service
 
+        <@\textcolor{path}{$\left[\text{Service}\right]$}@>
+        Type=simple
+        ExecStart=/usr/bin/python3 /home/fernzugriff/todo-api/TodoRestServer/src/App.py
+        WorkingDirectory=/home/fernzugriff/todo-api/working
+        StandardInput=tty-force
+
+        <@\textcolor{path}{$\left[\text{Install}\right]$}@>
+        WantedBy=multi-user.target
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:service_file}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+ExecStart ist hier der Befehl, der bei Start des Dienstes ausgeführt wird. Da ein Python Skript ausgeführt werden soll,
+Dienste aber nicht mit Umgebungsvariablen arbeiten und somit den Befehl python3 nicht direkt ausführen können, muss hier
+der gesamte Pfad zur python3 Datei angegeben werden.
+\\
+WorkingDirectory gibt den Ordner an, in dem der Befehl ausgeführt werden soll. Schreibt der Befehl zum Beispiel in das Dateisystem,
+kann dieser Parameter genutzt werden, um Ablageort des ausgeführten Programms, sowie Speicherort der vom Programm geschriebenen
+Dateien voneinander zu trennen.
+\\
+Da Dienste immer durch den User \glqq root\grqq{} ausgeführt werden, die fehlenden Python-Module aber mit einem anderen
+Benutzer heruntergeladen wurden, müssen diese nun auch für den root user heruntergeladen werden. Dafür wird keine Anmeldung
+als root benötigt, es reicht, die Installation mit sudo Berechtigungen auszuführen:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo pip install flask-cors
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:install_python_mods_sudo}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Falls Unklarheit besteht, welche Module dem root User fehlen, kann das Skript der API mit sudo Berechtigungen ausgeführt werden, um zu überprüfen,
+ob es möglich ist, dieses mit erhöhten Berechtigungen auszuführen.
+\\
+Nachdem der Dienst angelegt wurde, muss er nun noch aktiviert und gestartet werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo systemctl enable todoapi.service
+        Created symlink /etc/systemd/system/multi-user.target.wants/todoapi.service <@$\rightarrow$@> /lib/systemd/system/todoapi.service.
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo systemctl start todoapi.service
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:enable_service}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Durch \lstinline[basicstyle={\small\ttfamily\color{black}}]|systemctl enable| wird der Dienst zunächst dem korrekten Userverzeichnis
+hinzugefügt, wodurch er in dem entsprechenden Kontext gestartet werden kann. Durch
+\lstinline[basicstyle={\small\ttfamily\color{black}}]|systemctl start| wird der Dienst gestartet.
+\\
+Nun wird das Skript beim Start des Servers direkt hochgefahren.
 
 
 \section{Veröffentlichung der Swagger Dokumentation auf dem Webserver}
@@ -602,99 +700,6 @@ dienen sollte:
 
 \newpage
 \section{Anlagen}
-\subsection{Bilder}\label{ch:pics}
-
-\subsubsection{Konfiguration User}\label{ch:pic_user}
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=1]{Bilder/useradd_benutzer72.png}
-        \caption{Anlage und Konfiguration des Benutzers \glqq benutzer72\grqq}\label{pic:useradd_72}
-    \end{center}
-\end{figure}
-
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=1]{Bilder/useradd_fernzugriff.png}
-        \caption{Anlage und Konfiguration des Benutzers \glqq fernzugriff\grqq}\label{pic:useradd_fernzugriff}
-    \end{center}
-\end{figure}
-
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=1]{Bilder/sudo_fernzugriff.png}
-        \caption{Benutzer \glqq fernzugriff\grqq{} in die Gruppe sudo aufnehmen}\label{pic:usermod_fernzugriff}
-    \end{center}
-\end{figure}
-
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=1]{Bilder/ssh_fernzugriff.png}
-        \caption{Benutzer \glqq fernzugriff\grqq{} SSH-Rechte gewähren}\label{pic:ssh_fernzugriff}
-    \end{center}
-\end{figure}
-
-
-\subsubsection{Konfiguration Netzwerk}\label{ch:pics_network}
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=1]{Bilder/dhcpcdconf.png}
-        \caption{Angepasste dhcpcd.conf Datei}\label{pic:dhcpcdconf}
-    \end{center}
-\end{figure}
-
-
-
-\subsubsection{Konfiguration Firewall}\label{ch:pics_firewall}
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=0.7]{Bilder/update_apt.png}
-        \caption{Update APT}\label{pic:udpate_apt}
-    \end{center}
-\end{figure}
-
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=0.7]{Bilder/install_firewall.png}
-        \caption{Installation der UFW Firewall}\label{pic:install_firewall}
-    \end{center}
-\end{figure}
-
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=0.7]{Bilder/allow_ssh_from_network.png}
-        \caption{SSH Port für gleiches Netzwerk öffnen}\label{pic:ssh_port_allow}
-    \end{center}
-\end{figure}
-
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=0.7]{Bilder/ufw_allow_api.png}
-        \caption{Port der API für alle Netzwerke freischalten}\label{pic:api_port_allow}
-    \end{center}
-\end{figure}
-
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=0.7]{Bilder/ufw_allow_out_dns.png}
-        \caption{Ausgehende DNS Anfragen erlauben}\label{pic:dns_allow_out}
-    \end{center}
-\end{figure}
-
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=0.7]{Bilder/ufw_deny_all_incoming.png}
-        \caption{Alle eingehenden Pakete ohne Regel verbieten}\label{pic:firewall_deny_default}
-    \end{center}
-\end{figure}
-
-\subsubsection{Konfiguration Webserver}\label{ch:pics_webserver}
-\begin{figure}[H]
-    \begin{center}
-        \includegraphics[scale=0.7]{Bilder/apache_simple_start_page.png}
-        \caption{Alle eingehenden Pakete ohne Regel verbieten}\label{pic:apache_simple_page}
-    \end{center}
-\end{figure}
-
 
 
 
