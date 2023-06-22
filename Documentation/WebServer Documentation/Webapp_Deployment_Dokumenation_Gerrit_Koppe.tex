@@ -138,8 +138,8 @@
 \end{Large}
 Aus Gründen der Leserlichkeit wird in dieser Dokumentation das Wort \glqq Server\grqq{} verwendet, wann immer vom Raspberry Pi die Rede ist.
 \\
-Alle ausgeführten Befehle werden im laufenden Text der Dokumentation angegeben. Währed des gesamten Prozesses, welcher in dieser Dokumentation beschrieben wird, wurden des Weiteren Screenshots
-gemacht, welche in den Anlagen in Kapitel \ref{ch:pics} beigefügt sind. Auf diese wird an den entsprechenden Stellen der Dokumentation verwiesen.
+Manche der hier in der Dokumentation beschriebenen Befehle mussten bei der Ausführung bestätigt werden. Die Bestätigung wird nicht explizit
+erwähnt.
 \\
 Wann immer in einer Terminal Abbildung \glqq\lstinline[basicstyle={\small\ttfamily\color{black}}]|#...|\grqq{} steht, zeigt dies an, dass die Datei, welche jeweils bearbeitet wurde,
 weitere Zeilen hat, welche aber nicht relevant für den jeweils aktuellen Arbeitsschritt sind und dementsprechend ausgelassen wurden.
@@ -659,42 +659,82 @@ hinzugefügt, wodurch er in dem entsprechenden Kontext gestartet werden kann. Du
 Nun wird das Skript beim Start des Servers direkt hochgefahren.
 
 
-\section{Veröffentlichung der Swagger Dokumentation auf dem Webserver}
-Damit die veröffentlichte Rest API bedient werden kann, sollte die Swagger Dokumentation auf dem Webserver einzusehen sein.
-\\
-Um dies zu erreichen, wurde zunächst die Datei \lstinline[basicstyle={\small\ttfamily\color{black}}]|/var/www/html/api/index.html| angelegt, welche als Homepage für die Dokumentation
-dienen sollte:
+\section{Nextcloud Container deployen}
+Im Folgenden wird beschrieben, wie die Filehosting Lösung Nextcloud als Docker Container deployed wurde.
+
+\subsection{Installation Docker}
+Um Nextcloud als Container zu installieren, muss zunächst Docker installiert werden. Da Docker von manchen Linux-Distributionen
+ausgeliefert wird, wurden zunächst alle Pakete deinstalliert, die in Konflikt mit den zu installierenden Paketen stehen könnten:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
-        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> cd /var/www/html/api
-        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/var/www/html/api \$}@> sudo nano index.html
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> for pkg in docker.io docker-doc docker-compose podman-docker containerd runc; do sudo apt-get remove $pkg; done
         \end{lstlisting}
     \end{mdframed}
-    \label{lst:doc_nano}
+    \label{lst:uninstall_docker_pkg}
     % \caption{fernzugriff anlegen}
 \end{figure}
+Der Befehl iteriert über alle Pakete in den angegebenen Repositories und deinstalliert die lokalen Kopien dieser Pakete, sollten
+sie installiert sein.
+\\
+Nachdem die Pakete erfolgreich deinstalliert wurden, musten zunächst Hilfspakete installiert werden, die es ermöglichen, die
+notwendigen Voraussetzungen für Docker zu installieren:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
-        <@\textcolor{cfg}{<html>}@>
-            <@\textcolor{cfg}{<body>}@>
-                <@\textcolor{cfg}{<h1>}@>Projekt Todo-Listen Verwaltung<@\textcolor{cfg}{</h1>}@>
-                <@\textcolor{cfg}{<br />}@>
-                <@\textcolor{cfg}{<h2>}@>Client Dokumentation<@\textcolor{cfg}{</h2>}@><@\textcolor{cfg}{<br />}@>
-                <@\textcolor{cfg}{<a }@><@\textcolor{red}{href=}@><@\textcolor{dkgreen}{'./documentation/Client/API-Documentation/index.html'}@><@\textcolor{cfg}{>}@>
-                    API-Dokumentation des Rest Clients
-                <@\textcolor{cfg}{</a>}@>
-                <@\textcolor{cfg}{<br />}@>
-                <@\textcolor{cfg}{<h2>}@>Client Dokumentation<@\textcolor{cfg}{</h2>}@><@\textcolor{cfg}{<br />}@>
-                <@\textcolor{cfg}{<a }@><@\textcolor{red}{href=}@><@\textcolor{dkgreen}{'https://github.com/LeichtMatrosee/RestClient'}@><@\textcolor{cfg}{>}@>
-                    Repo des Rest Clients
-                <@\textcolor{cfg}{</a>}@>
-            <@\textcolor{cfg}{</body>}@>
-        <@\textcolor{cfg}{</html>}@>
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo apt-get install ca-certificates curl gnupg
         \end{lstlisting}
     \end{mdframed}
-    \label{lst:index_apache2}
+    \label{lst:install_https_pkgs}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Anschließend musste der offizielle Docker GPG Key installiert werden, der dazu dient, die Kommunikation zwischen
+Docker und dem Docker Repository zu verschlüsseln\footnote{Vgl. Quelle \ref{src:gnupg} in Kapitel\ref{ch:src}}:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo install -m 0755 -d /etc/apt/keyrings
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo chmod a+r /etc/apt/keyrings/docker.gpg
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:install_gpg}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Durch \lstinline[basicstyle={\small\ttfamily\color{black}}]|chmod a+r| wurde des Weiteren jedem User die Berechtigung zur Nutzung des
+GPG Keys gegeben.
+\\
+Nachdem der GPG Key installiert und für jeden Benutzer freigegeben war, konnte das Repository für Docker aufgesetzt werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> echo \
+        "deb [arch="$(dpkg --print-architecture)" signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu \
+        "$(. /etc/os-release && echo "$VERSION_CODENAME")" stable" | \
+        sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:setup_docker_repo}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Final konnte nun Docker installiert werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:install_docker}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Um zu überprüfen, ob die Installation erfolgreich war, konnte nun ein einfaches Docker Image gestartet werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo docker run hello-world
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:setup_docker_repo}
     % \caption{fernzugriff anlegen}
 \end{figure}
 
@@ -708,6 +748,7 @@ dienen sollte:
 \subsubsection{Internetquellen}\label{ch:src_internet}
 \begin{enumerate}
     \item Ubuntu Wiki: UncomplicatedFirewall. 2022 - Online unter: \newline\url{https://wiki.ubuntu.com/UncomplicatedFirewall} $\left[\text{11.06.2023}\right]$\label{src:ufw}
+    \item GnuPG: The GNU Privacy Guard. Online unter: \newline\url{https://gnupg.org/} $\left[\text{11.06.2023}\right]$\label{src:gnupg}
 \end{enumerate}
 \begin{small}
 
