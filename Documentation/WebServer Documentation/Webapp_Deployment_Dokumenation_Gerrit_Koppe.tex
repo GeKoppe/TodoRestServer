@@ -142,7 +142,12 @@ Manche der hier in der Dokumentation beschriebenen Befehle mussten bei der Ausf�
 erwähnt.
 \\
 Wann immer in einer Terminal Abbildung \glqq\lstinline[basicstyle={\small\ttfamily\color{black}}]|#...|\grqq{} steht, zeigt dies an, dass die Datei, welche jeweils bearbeitet wurde,
-weitere Zeilen hat, welche aber nicht relevant für den jeweils aktuellen Arbeitsschritt sind und dementsprechend ausgelassen wurden.
+weitere Zeilen hat, welche aber nicht relevant für den jeweils aktuellen Arbeitsschritt sind und dementsprechend ausgelassen wurden. Es kann außerdem anzeigen, dass
+die Kommandozeile nach Ausführung eines Befehls noch weitere Informationen anzeigt, diese allerdings ebenfalls ausgelassen wurden.
+\\
+Aus technischen Gründen, wurde ab dem Kapitel \glqq Einrichtung Webserver\grqq{} nicht mehr auf einem Raspberry Pi, sondern auf einem Ubuntu Server 22.04 gearbeitet. Es ist möglich,
+dass manche Kommandos sich zu denen, die auf einem Raspberry Pi ausgeführt werden würden, unterscheiden.
+
 
 \newpage
 \thispagestyle{empty}
@@ -156,15 +161,32 @@ weitere Zeilen hat, welche aber nicht relevant für den jeweils aktuellen Arbeit
 In dieser Dokumentation wird die Konfiguration eines Raspberry Pi\footnote{Fortan \glqq Server\grqq} als Host einer Rest API, sowie das Deployment besagter Rest API beschrieben.
 \\
 Es wird zunächst auf allgemeine Vorbereitungen eingegangen. Anschließend wird beschrieben, wie die User und das Netzwerk, sowie die Firewall des Servers konfiguriert werden müssen.
-Abschließend wird die Installation des Webservers, sowie das Deployment der Rest API auf dem Server beschrieben.
+Abschließend wird die Installation des Webservers, sowie das Deployment der Rest API und der Nextcloud Lösung als Docker Container auf dem Server beschrieben.
 \\
-Sämtliche Arbeitsschritte sind sowohl durch die jeweiligen Terminal Befehle, als auch durch Screenshots die während der Umsetzung entstanden sind, dokumentiert.
+Sämtliche Arbeitsschritte sind durch die Terminal Befehle dokumentiert, die während der Umsetzung ausgeführt wurden.
 
 
 
 \section{Vorbereitungen}
-% Inbetriebnahme Raspberry PI
-% Betriebssystem, Einbinden in Netzwerk
+Bevor die Aufgabe selbst begonnen werden konnte, musste zunächst eine SD Karte mit dem Raspbian OS beschrieben werden. Diese Aufgabe wurde von Herrn Wichmann durchgeführt.
+\\
+Nachdem das Raspbian OS erfolgreich auf der SD Karte installiert wurde und die SD-Karte im Server verbaut wurde, musste der Server per Ethernet Kabel an ein Netzwerk
+angeschlossen werden, zu dem der Umsetzende Zugriff hatte.
+\\
+Schlussendlich wurde eine Verbindung zum Server per SSH aufgebaut. Da noch keine Änderungen am Betriebssystem vorgenommen wurden, wurde die Verbindung mit dem Benutzer
+\glqq pi\grqq{} und dem Passwort \grqq raspberry\grqq{} aufgebaut:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        C:\Users\gkoppe>ssh pi@192.168.24.113
+        pi@192.168.24.113's password:
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:user_72}
+    % \caption{benutzer72 anlegen}
+\end{figure}
+
+
 
 \section{Konfiguration der User}\label{ch:user}
 % Benötigte User und warum
@@ -252,6 +274,21 @@ in der Datei \lstinline[basicstyle={\small\ttfamily\color{black}}]|/etc/ssh/sshd
 % TODO User Pi neues passwort geben
 Nun besitzt der Benutzer \glqq fernzugriff\grqq{} alle notwendigen Rechte, um ihn für administrative Tätigkeiten zu verwenden. Fortan wird der Benutzer \glqq pi\grqq{} nicht mehr verwendet und alle
 Umsetzungen werden mit dem Benutzer \glqq fernzugriff\grqq{} durchgeführt.
+\\
+Um das System abzusichern, wurde außerdem, nachdem eine neue Verbindung mit dem Benutzer \glqq fernzugriff\grqq{} aufgebaut wurde, das Passwort des Benutzers \glqq pi\grqq{}
+geändert:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo passwd pi
+        New password:
+        Retype new password:
+        passwd: password updated successfully
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:change_pi_passwd}
+    % \caption{fernzugriff anlegen}
+\end{figure}
 
 
 \section{Konfiguration des Netzwerks}\label{ch:network}
@@ -476,7 +513,7 @@ Nachdem alle Regeln eingerichtet wurden, wurde noch einmal über den UFW Status 
 
 
 
-\section{Einrichtung Webserver}
+\section{Einrichtung Webserver}\label{ch:webserver}
 Nachdem die Firewall Regeln eingerichtet wurden, konnte der Webserver installiert und konfiguriert werden. Die Wahl fiel hier auf den Webserver Apache2.
 % TODO Warum Apache2?
 
@@ -525,7 +562,7 @@ werden:
 \end{figure}
 Diese konnte nun erreicht werden, sobald die IP-Adresse des Servers im Browser aufgerufen wurde.
 
-\section{Einrichtung Rest API auf Betriebsystem}
+\section{Einrichtung Rest API auf Betriebsystem}\label{ch:api_os}
 Um die Rest API auf dem Betriebsystem einzurichten, mussten zunächst die Skripte auf dem Server abgelegt werden. Zunächst wurde
 ein neuer Ordner \lstinline[basicstyle={\small\ttfamily\color{black}}]|todo-api| im Home Verzeichnis des Users fernzugriff angelegt.
 Es wurde sich hier für das Homeverzeichnis entschieden, da die API Dateien und Ordner anlegt und das Skript ursprünglich nicht dafür gedacht war, auf
@@ -640,10 +677,12 @@ als root benötigt, es reicht, die Installation mit sudo Berechtigungen auszufü
 Falls Unklarheit besteht, welche Module dem root User fehlen, kann das Skript der API mit sudo Berechtigungen ausgeführt werden, um zu überprüfen,
 ob es möglich ist, dieses mit erhöhten Berechtigungen auszuführen.
 \\
-Nachdem der Dienst angelegt wurde, muss er nun noch aktiviert und gestartet werden:
+Nachdem der Dienst angelegt wurde, muss er nun noch aktiviert und gestartet werden. Zuvor muss aber der Daemon einmal neu geladen werden, damit dieser den neuen Dienst
+registriert:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo systemctl daemon-reload
         <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo systemctl enable todoapi.service
         Created symlink /etc/systemd/system/multi-user.target.wants/todoapi.service <@$\rightarrow$@> /lib/systemd/system/todoapi.service.
         <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo systemctl start todoapi.service
@@ -737,6 +776,83 @@ Um zu überprüfen, ob die Installation erfolgreich war, konnte nun ein einfache
     \label{lst:setup_docker_repo}
     % \caption{fernzugriff anlegen}
 \end{figure}
+
+
+\subsection{Einrichtung Nextcloud als Docker Container}
+Da Docker automatisch alle Images, die nicht bereits installiert sind, bei Ausführung aus der Image Registry herunterlädt und installiert, muss nur der Befehl ausgeführt werden,
+um das Nextcloud Image zu starten. Da Docker Container nicht persistent sind, muss allerdings noch ein Dateiverzeichnis angegeben werden, in dem die Dateien gespeichert werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo mkdir "nc-files"
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo docker run -v "/home/fernzugriff/nc-files" nextcloud
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:folder_for_nextcloud}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Nachdem der Befehl ausgeführt wurde, wird zunächst das Image, falls es noch nicht lokal installiert ist, heruntergeladen. Anschließend wird das Image als Container ausgeführt, wobei
+der Pfad, der hinter dem \lstinline[basicstyle={\small\ttfamily\color{black}}]|-v| Parameter angegeben ist, als Volume für den Container dient.
+\\
+Damit der Nextcloud Container auch beim Start des Systems verfügbar ist, musste auch in diesem Fall wieder ein Dienst angelegt werden. Da die Konfiguration identisch zu der aus Kapitel
+\ref{ch:api_os} ist, wird das Vorgehen hier nicht weiter erläutert:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> cd /lib/systemd/system
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{/lib/systemd/system \$}@> sudo nano nextcloud.service
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:create_service_file_nextcloud}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{path}{$\left[\text{Unit}\right]$}@>
+        Description=Nextcloud Service
+        After=multi-user.target
+        Conflicts=getty@tty7.service
+
+        <@\textcolor{path}{$\left[\text{Service}\right]$}@>
+        Type=simple
+        ExecStart=/usr/bin/docker run -v "home/fernzugriff/nc-files" nextcloud
+        StandardInput=tty-force
+
+        <@\textcolor{path}{$\left[\text{Install}\right]$}@>
+        WantedBy=multi-user.target
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:service_file}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo systemctl daemon-reload
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo systemctl enable nextcloud.service
+        Created symlink /etc/systemd/system/multi-user.target.wants/todoapi.service <@$\rightarrow$@> /lib/systemd/system/nextcloud.service.
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo systemctl start nextcloud.service
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:enable_service}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Um zu überprüfen, ob der neue Dienst aktiv ist, wurden zuletzt noch alle aktiven Docker Images angezeigt:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo docker ps
+        CONTAINER IDs       Image       COMMAND                     CREATED         <@\textcolor{path}{\#...}@>
+        5f3bc0925087        nextcloud   "/entrypoint.sh apac..."    50 seconds ago  <@\textcolor{path}{\#...}@>
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:enable_service}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Nextcloud war somit erfolgreich installiert, die Daten persistiert und der Container wurde bei Start des Systems hochgefahren.
 
 \newpage
 \section{Anlagen}
