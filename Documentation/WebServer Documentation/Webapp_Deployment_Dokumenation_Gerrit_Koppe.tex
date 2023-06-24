@@ -784,18 +784,50 @@ um das Nextcloud Image zu starten. Da Docker Container nicht persistent sind, mu
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
-        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo mkdir "nc-files"
-        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo docker run -v "/home/fernzugriff/nc-files" nextcloud
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo mkdir "/var/nc-files"
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo docker run -v "/var/nc-files" nextcloud
         \end{lstlisting}
     \end{mdframed}
     \label{lst:folder_for_nextcloud}
     % \caption{fernzugriff anlegen}
 \end{figure}
 Nachdem der Befehl ausgeführt wurde, wird zunächst das Image, falls es noch nicht lokal installiert ist, heruntergeladen. Anschließend wird das Image als Container ausgeführt, wobei
-der Pfad, der hinter dem \lstinline[basicstyle={\small\ttfamily\color{black}}]|-v| Parameter angegeben ist, als Volume für den Container dient.
+der Pfad, der hinter dem \lstinline[basicstyle={\small\ttfamily\color{black}}]|-v| Parameter angegeben ist, als Volume für den Container dient. Sobald der Container als Dienst
+installiert wurde, wurde den einzelnen Komponenten der Nextcloud jeweils eine eigene Volume zugewiesen, dies war zunächst nur ein Test.
 \\
-Damit der Nextcloud Container auch beim Start des Systems verfügbar ist, musste auch in diesem Fall wieder ein Dienst angelegt werden. Da die Konfiguration identisch zu der aus Kapitel
-\ref{ch:api_os} ist, wird das Vorgehen hier nicht weiter erläutert:
+Des Weiteren sollte die Weboberfläche der Nextcloud von anderen Hosts erreichbar sein. Um dies zu realisieren, musste zunächst ein weiterer Port in der Firewall freigegeben
+werden. Die Wahl ist auf den Port 8080 gefallen, hier kann aber ein beliebiger freier Port genutzt werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo ufw allow 8080
+        Rules updated
+        Rules updated (v6)
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:port_nextcloud}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Außerdem musste der Container mit dem entsprechenden Port gestartet werden:
+\begin{figure}[H]
+    \begin{mdframed}[backgroundcolor=bbg]
+        \begin{lstlisting}
+        <@\textcolor{ssh}{fernzugriff@raspberry}@>:<@\textcolor{path}{$\sim$ \$}@> sudo docker run -p 8080:80 -v "/var/nc-files" nextcloud
+        \end{lstlisting}
+    \end{mdframed}
+    \label{lst:port_nextcloud}
+    % \caption{fernzugriff anlegen}
+\end{figure}
+Der Parameter \lstinline[basicstyle={\small\ttfamily\color{black}}]|-p 8080:80| gibt hierbei an, dass HTTP Requests auf dem Port 8080 die Weboberfläche der Nextcloud aufrufen
+sollen. Nun war die Weboberfläche erreichbar:
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.5]{Bilder/nextcloud_web.png}
+        \caption{Nextcloud Weboberfläche}
+    \end{center}
+\end{figure}
+Bevor die Konfiguration der Nextcloud fortgesetzt wurde, wurde ein Dienst angelegt, damit der Container beim Start des Systems verfügbar war. Da die Konfiguration
+identisch zu der aus Kapitel \ref{ch:api_os} abläuft, wird das Vorgehen hier nicht weiter erläutert:
 \begin{figure}[H]
     \begin{mdframed}[backgroundcolor=bbg]
         \begin{lstlisting}
@@ -817,7 +849,14 @@ Damit der Nextcloud Container auch beim Start des Systems verfügbar ist, musste
 
         <@\textcolor{path}{$\left[\text{Service}\right]$}@>
         Type=simple
-        ExecStart=/usr/bin/docker run -v "home/fernzugriff/nc-files" nextcloud
+        ExecStart=/usr/bin/docker run -p 8080:80 \
+        -v db:/var/lib/sqlite \
+        -v data:/var/www/html/data \
+        -v nextcloud:/var/www/html \
+        -v custom_apps:/var/www/html/custom_apps \
+        -v config:/var/www/html/config \
+        -v themes:/var/www/html/themes \
+        nextcloud
         StandardInput=tty-force
 
         <@\textcolor{path}{$\left[\text{Install}\right]$}@>
@@ -853,13 +892,22 @@ Um zu überprüfen, ob der neue Dienst aktiv ist, wurden zuletzt noch alle aktiv
     % \caption{fernzugriff anlegen}
 \end{figure}
 Nextcloud war somit erfolgreich installiert, die Daten persistiert und der Container wurde bei Start des Systems hochgefahren.
+\\
+Nun konnte die Nextcloud final konfiguriert werden. Beim Initialen Aufruf der Weboberfläche erwartet Nextcloud die Anlage eines administrativen Benutzers. Hier wurden
+ein Nutzer und ein Passwort hinterlegt.
+\\
+Nextcloud war somit fertig installiert und eingerichtet:
+\begin{figure}[H]
+    \begin{center}
+        \includegraphics[scale=0.2]{Bilder/nextcloud_web_app.png}
+        \caption{Installation Nextcloud Apps}
+    \end{center}
+\end{figure}
+
+
 
 \newpage
 \section{Anlagen}
-
-
-
-
 \subsection{Quellen}\label{ch:src}
 \subsubsection{Internetquellen}\label{ch:src_internet}
 \begin{enumerate}
