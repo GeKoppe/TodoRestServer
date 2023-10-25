@@ -1,4 +1,4 @@
-\documentclass[a4paper, 11pt]{scrartcl}
+\documentclass[a4paper, 12pt]{scrartcl}
 
 \usepackage[utf8]{inputenc}
 \usepackage[ngerman]{babel}
@@ -147,6 +147,9 @@ die Kommandozeile nach Ausführung eines Befehls noch weitere Informationen anze
 \\
 Aus technischen Gründen, wurde ab dem Kapitel \glqq Einrichtung Webserver\grqq{} nicht mehr auf einem Raspberry Pi, sondern auf einem Ubuntu Server 22.04 gearbeitet. Es ist möglich,
 dass manche Kommandos sich zu denen, die auf einem Raspberry Pi ausgeführt werden würden, unterscheiden.
+\\
+Da die in dieser Dokumentation beschriebene Installation auf Servern durchgeführt wurde, die nur aus bestimmten Netzwerken erreichbar sind und die Server nach Abgabe der Dokumentation
+heruntergefahren werden, wurde darauf verzichtet, IP-Adressen, Benutzer und Passwörter unkenntlich zu machen, da dadurch die Leserlichkeit hätte beeinträchtigt werden können.
 
 
 \newpage
@@ -192,7 +195,7 @@ Schlussendlich wurde eine Verbindung zum Server per SSH aufgebaut. Da noch keine
 % Benötigte User und warum
 % TODO Begründung anpassen.
 Nachdem das Betriebssystem des Servers installiert, der Server in das Netzwerk eingebunden und überprüft wurde, ob eine SSH Verbindung zum Server möglich ist, wurden zwei neue User angelegt, um den Server
-abzusichern, da der User \glqq Pi\grqq{} der Standarduser des Betriebssystems ist und somit allgemein bekannt.
+abzusichern, da der User \glqq Pi\grqq{} der Standarduser des Betriebssystems und somit allgemein bekannt ist.
 \\
 Es wurden insgesamt zwei neue User angelegt. Ein User \glqq benutzer72\grqq{} mit grundlegenden Nutzungsrechten und ein Benutzer \glqq fernzugriff\grqq{} mit administrativen Rechten. Des Weiteren kann der
 Benutzer \glqq fernzugriff\grqq{} verwendet werden, um eine SSH-Verbindung zum Server aufzubauen.
@@ -900,7 +903,7 @@ Nextcloud war somit fertig installiert und eingerichtet:
 \begin{figure}[H]
     \begin{center}
         \includegraphics[scale=0.2]{Bilder/nextcloud_web_app.png}
-        \caption{Installation Nextcloud Apps}
+        \caption{Nextcloud Web Oberfläche}
     \end{center}
 \end{figure}
 
@@ -909,10 +912,9 @@ Nextcloud war somit fertig installiert und eingerichtet:
 \newpage
 \section{Anlagen}
 \subsection{Quellen}\label{ch:src}
-\subsubsection{Internetquellen}\label{ch:src_internet}
 \begin{enumerate}
     \item Ubuntu Wiki: UncomplicatedFirewall. 2022 - Online unter: \newline\url{https://wiki.ubuntu.com/UncomplicatedFirewall} $\left[\text{11.06.2023}\right]$\label{src:ufw}
-    \item GnuPG: The GNU Privacy Guard. Online unter: \newline\url{https://gnupg.org/} $\left[\text{11.06.2023}\right]$\label{src:gnupg}
+    \item GnuPG: The GNU Privacy Guard. Online unter: \newline\url{https://gnupg.org/} $\left[\text{22.06.2023}\right]$\label{src:gnupg}
 \end{enumerate}
 \begin{small}
 
